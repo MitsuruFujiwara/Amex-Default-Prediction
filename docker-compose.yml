@@ -1,0 +1,19 @@
+version: "2.4"
+services:
+  shell:
+    build: .
+    volumes:
+        - $PWD:/root/workspace
+    working_dir: /root/workspace
+    platform: linux/amd64
+    entrypoint: bash
+
+  jn:
+    build: .
+    volumes:
+        - $PWD:/root/workspace
+    working_dir: /root/workspace/src
+    platform: linux/amd64
+    ports:
+        - 8888:8888
+    command: jupyter notebook --ip=0.0.0.0 --allow-root --no-browser
