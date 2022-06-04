@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-from utils import to_feature, line_notify
+from utils import to_json, to_feature, line_notify
 
 #==============================================================================
 # preprocess
@@ -25,12 +25,11 @@ def main():
         sub = pd.read_csv('../input/sample_submission.csv')
 
     
-
     # TODO
 
 
     # save as feather
-    to_feature(df, '../feats/f101')
+    to_feature(df, '../feats/f001')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}

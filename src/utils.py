@@ -1,8 +1,17 @@
 
+import json
+import pandas as pd
+import numpy as np
 
 #==============================================================================
 # utils
 #==============================================================================
+
+NUM_FOLDS = 5
+
+FEATS_EXCLUDED = ['customer_ID','target','is_test','index']
+
+COMPETITION_NAME_M = 'amex-default-prediction'
 
 # to feather
 def to_feature(df, path):
@@ -14,6 +23,11 @@ def to_feature(df, path):
         df[[c]].to_feather('{}_{}.feather'.format(path,c))
     return
 
+# save json
+def to_json(data_dict, path):
+    with open(path, 'w') as f:
+        json.dump(data_dict, f, indent=4)
+        
 # LINE Notify
 def line_notify(message):
     f = open('../input/line_token.txt')
