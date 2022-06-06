@@ -10,11 +10,11 @@ from utils import reduce_mem_usage, to_json, to_feature, line_notify
 # preprocess
 #==============================================================================
 
-is_test = False
+is_debug = False
 
 def main():
 
-    if is_test:
+    if is_debug:
         train_df = pd.read_csv('../input/train_data.csv',nrows=100000)
         train_labels = pd.read_csv('../input/train_labels.csv',nrows=100000)
         test_df = pd.read_csv('../input/train_data.csv',nrows=100000)
