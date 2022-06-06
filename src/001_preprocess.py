@@ -1,5 +1,6 @@
 
 import gc
+import json
 import numpy as np
 import pandas as pd
 import sys
@@ -10,20 +11,22 @@ from utils import reduce_mem_usage, to_json, to_feature, line_notify
 # preprocess
 #==============================================================================
 
-is_debug = False
+IS_DEBUG = False
+
+data_types = json.load(open('../configs/002_data_types.json'))
 
 def main():
 
-    if is_debug:
-        train_df = pd.read_csv('../input/train_data.csv',nrows=100000)
-        train_labels = pd.read_csv('../input/train_labels.csv',nrows=100000)
-        test_df = pd.read_csv('../input/train_data.csv',nrows=100000)
-        sub = pd.read_csv('../input/sample_submission.csv')
+    if IS_DEBUG:
+        nrows=100000
     else:
-        train_df = pd.read_csv('../input/train_data.csv')
-        train_labels = pd.read_csv('../input/train_labels.csv')
-        test_df = pd.read_csv('../input/train_data.csv')
-        sub = pd.read_csv('../input/sample_submission.csv')
+        nrows=None
+
+    # load csv
+    train_df = pd.read_csv('../input/train_data.csv',nrows=nrows,dtype=data_types)
+    train_labels = pd.read_csv('../input/train_labels.csv',nrows=nrows)
+    test_df = pd.read_csv('../input/test_data.csv',nrows=nrows,dtype=data_types)
+    sub = pd.read_csv('../input/sample_submission.csv')
 
     # to datetime
     train_df['S_2'] = pd.to_datetime(train_df['S_2'])

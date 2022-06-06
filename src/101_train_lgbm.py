@@ -118,7 +118,7 @@ def main():
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
-        fold_score = amex_metric_mod(oof_preds[valid_idx],valid_y)
+        fold_score = amex_metric_mod(valid_y,oof_preds[valid_idx])
 
         print(f'Fold {n_fold+1} kaggle metric: {fold_score}')
 
