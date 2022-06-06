@@ -9,10 +9,10 @@ import warnings
 
 from glob import glob
 from sklearn.model_selection import GroupKFold
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import log_loss
 from tqdm import tqdm
 
-from utils import save_imp, plot_roc, line_notify
+from utils import save_imp, amex_metric_mod, line_notify
 from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
@@ -41,8 +41,8 @@ params = configs['params']
 params['task'] = 'train'
 params['boosting'] = 'gbdt'
 params['objective'] = 'binary'
-params['metric'] = 'auc'
-params['learning_rate'] = 0.01
+params['metric'] = 'binary_logloss'
+params['learning_rate'] = 0.05
 params['reg_alpha'] = 0.0
 params['min_split_gain'] = 0.0
 params['verbose'] = -1
@@ -118,16 +118,16 @@ def main():
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
-        fold_score = roc_auc_score(valid_y, oof_preds[valid_idx])
+        fold_score = amex_metric_mod(oof_preds[valid_idx],valid_y)
 
-        print(f'Fold {n_fold+1} AUC: {fold_score}')
+        print(f'Fold {n_fold+1} kaggle metric: {fold_score}')
 
         del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
 
     # Full score and LINE Notify
-    full_score = round(roc_auc_score(train_df['target'], oof_preds),6)
-    line_notify(f'Full AUC: {full_score}')
+    full_score = round(amex_metric_mod(train_df['target'], oof_preds),6)
+    line_notify(f'Full kaggle metric: {full_score}')
 
     # save importance
     save_imp(imp_df,imp_path_png,imp_path_csv)
@@ -139,9 +139,6 @@ def main():
     # save csv
     train_df[['customer_ID','target','prediction']].to_csv(oof_path, index=False)
     test_df[['customer_ID','prediction']].to_csv(sub_path, index=False)
-
-    # save roc curve
-    plot_roc(train_df['target'], train_df['prediction'], roc_path)
 
     # LINE notify
     line_notify(f'{sys.argv[0]} done.')
