@@ -10,7 +10,7 @@ from utils import reduce_mem_usage, to_json, to_feature, line_notify
 # preprocess
 #==============================================================================
 
-is_debug = True
+is_debug = False
 
 def main():
 
