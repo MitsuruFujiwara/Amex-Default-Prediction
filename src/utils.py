@@ -1,10 +1,13 @@
 
 import json
-import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import requests
+import seaborn as sns
 
 from tqdm import tqdm
+from sklearn.metrics import roc_curve
 
 #==============================================================================
 # utils
@@ -12,7 +15,7 @@ from tqdm import tqdm
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['customer_ID','target','is_test','index']
+FEATS_EXCLUDED = ['customer_ID','target','is_test','index','S_2']
 
 COMPETITION_NAME_M = 'amex-default-prediction'
 
@@ -31,6 +34,21 @@ def to_json(data_dict, path):
     with open(path, 'w') as f:
         json.dump(data_dict, f, indent=4)
         
+# Display/plot feature importance
+def save_imp(imp_df, path_png, path_csv):
+    cols = imp_df[['feature', 'importance']].groupby('feature').mean().sort_values(by='importance', ascending=False)[:40].index
+    best_features = imp_df.loc[imp_df.feature.isin(cols)]
+
+    # for checking all importance
+    imp_df_agg = imp_df.groupby('feature').sum()
+    imp_df_agg.to_csv(path_csv)
+
+    plt.figure(figsize=(8, 10))
+    sns.barplot(x='importance', y='feature', data=best_features.sort_values(by='importance', ascending=False))
+    plt.title('LightGBM Features (avg over folds)')
+    plt.tight_layout()
+    plt.savefig(path_png)
+
 # LINE Notify
 def line_notify(message):
     f = open('../input/line_token.txt')
@@ -71,3 +89,17 @@ def reduce_mem_usage(df, verbose=True):
     end_mem = df.memory_usage(deep=True).sum() / 1024**2
     if verbose: print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'.format(end_mem, 100 * (start_mem - end_mem) / start_mem))
     return df
+
+# plot roc
+def plot_roc(y_true, y_pred, outputpath):
+    fpr, tpr, _ = roc_curve(y_true, y_pred)
+
+    plt.figure()
+    plt.plot(fpr, tpr)
+    plt.plot([0, 1], [0, 1], lw=1, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC')
+    plt.savefig(outputpath)

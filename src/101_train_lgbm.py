@@ -9,10 +9,10 @@ import warnings
 
 from glob import glob
 from sklearn.model_selection import GroupKFold
-from sklearn.metrics import log_loss
+from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
 
-from utils import line_notify, save_imp
+from utils import save_imp, plot_roc, line_notify
 from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
@@ -21,19 +21,19 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/201_lgbm_mens.json'))
+configs = json.load(open('../configs/101_lgbm.json'))
 
-feats_path = '../feats/f101_*.feather'
+feats_path = '../feats/f001_*.feather'
 
-sub_path = '../output/submission_lgbm_mens.csv'
-oof_path = '../output/oof_lgbm_mens.csv'
+sub_path = '../output/submission_lgbm.csv'
+oof_path = '../output/oof_lgbm.csv'
 
-model_path = '../models/lgbm_mens_'
+model_path = '../models/lgbm_'
 
-imp_path_png = '../imp/lgbm_importances_mens.png'
-imp_path_csv = '../imp/feature_importance_lgbm_mens.csv'
+imp_path_png = '../imp/lgbm_importances.png'
+imp_path_csv = '../imp/feature_importance_lgbm.csv'
 
-scatter_path = '../imp/scatter_mens.png'
+roc_path = '../imp/roc.png'
 
 params = configs['params']
 
@@ -41,7 +41,7 @@ params = configs['params']
 params['task'] = 'train'
 params['boosting'] = 'gbdt'
 params['objective'] = 'binary'
-params['metric'] = 'binary_logloss'
+params['metric'] = 'auc'
 params['learning_rate'] = 0.01
 params['reg_alpha'] = 0.0
 params['min_split_gain'] = 0.0
@@ -80,7 +80,7 @@ def main():
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['Season'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['customer_ID'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
@@ -94,7 +94,7 @@ def main():
                                free_raw_data=False)
 
         # train
-        reg = lgb.train(
+        clf = lgb.train(
                         params,
                         lgb_train,
                         valid_sets=[lgb_train, lgb_test],
@@ -105,43 +105,43 @@ def main():
                         )
 
         # save model
-        reg.save_model(f'{model_path}{n_fold}.txt')
+        clf.save_model(f'{model_path}{n_fold}.txt')
 
         # save predictions
-        oof_preds[valid_idx] = reg.predict(valid_x,num_iteration=reg.best_iteration)
-        sub_preds += reg.predict(test_df[feats],num_iteration=reg.best_iteration) / folds.n_splits
+        oof_preds[valid_idx] = clf.predict(valid_x,num_iteration=clf.best_iteration)
+        sub_preds += clf.predict(test_df[feats],num_iteration=clf.best_iteration) / folds.n_splits
 
         # save importances
         fold_importance_df = pd.DataFrame()
         fold_importance_df['feature'] = feats
-        fold_importance_df['importance'] = np.log1p(reg.feature_importance(importance_type='gain', iteration=reg.best_iteration))
+        fold_importance_df['importance'] = np.log1p(clf.feature_importance(importance_type='gain', iteration=clf.best_iteration))
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
-        fold_score = log_loss(valid_y, oof_preds[valid_idx])
+        fold_score = roc_auc_score(valid_y, oof_preds[valid_idx])
 
-        print(f'Fold {n_fold+1} logloss: {fold_score}')
+        print(f'Fold {n_fold+1} AUC: {fold_score}')
 
-        del reg, train_x, train_y, valid_x, valid_y
+        del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
 
     # Full score and LINE Notify
-    full_score = round(log_loss(train_df['target'], oof_preds),6)
-    line_notify(f'Full logloss: {full_score}')
+    full_score = round(roc_auc_score(train_df['target'], oof_preds),6)
+    line_notify(f'Full AUC: {full_score}')
 
     # save importance
     save_imp(imp_df,imp_path_png,imp_path_csv)
 
     # save prediction
-    train_df.loc[:,'Pred'] = oof_preds
-    test_df.loc[:,'Pred'] = sub_preds
-
-    # to probablity
-    test_df.loc[:,'Pred'] = (test_df['Pred']-test_df['Pred'].min())/(test_df['Pred'].max()-test_df['Pred'].min())
+    train_df.loc[:,'prediction'] = oof_preds
+    test_df.loc[:,'prediction'] = sub_preds
 
     # save csv
-    train_df[['ID','target','Pred']].to_csv(oof_path, index=False)
-    test_df[['ID','Pred']].to_csv(sub_path, index=False)
+    train_df[['customer_ID','target','prediction']].to_csv(oof_path, index=False)
+    test_df[['customer_ID','prediction']].to_csv(sub_path, index=False)
+
+    # save roc curve
+    plot_roc(train_df['target'], train_df['prediction'], roc_path)
 
     # LINE notify
     line_notify(f'{sys.argv[0]} done.')
