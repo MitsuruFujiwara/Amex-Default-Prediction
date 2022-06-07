@@ -18,7 +18,7 @@ NUM_FOLDS = 5
 FEATS_EXCLUDED = ['customer_ID','target','is_test','index',
                   'S_2','S_2_max','D_63_max','S_2_min','D_63_min','S_2_last','D_63_last','D_64_last']
 
-COMPETITION_NAME_M = 'amex-default-prediction'
+COMPETITION_NAME = 'amex-default-prediction'
 
 # to feather
 def to_feature(df, path):
