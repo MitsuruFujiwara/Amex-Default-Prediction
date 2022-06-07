@@ -32,19 +32,82 @@ def main():
     train_df['S_2'] = pd.to_datetime(train_df['S_2'])
     test_df['S_2'] = pd.to_datetime(test_df['S_2'])
 
+    # datetime features
+    train_df['day'] = train_df['S_2'].dt.day
+    train_df['month'] = train_df['S_2'].dt.month
+    train_df['year'] = train_df['S_2'].dt.year
+    train_df['seasonality'] = np.cos(np.pi*(train_df['S_2'].dt.dayofyear/366*2-1))
+
+    test_df['day'] = test_df['S_2'].dt.day
+    test_df['month'] = test_df['S_2'].dt.month
+    test_df['year'] = test_df['S_2'].dt.year
+    test_df['seasonality'] = np.cos(np.pi*(test_df['S_2'].dt.dayofyear/366*2-1))
+
     # reduce memory usage
     train_df = reduce_mem_usage(train_df)
     test_df = reduce_mem_usage(test_df)
     
-    # aggregate
-    train_df = train_df.groupby('customer_ID').mean()
-    test_df = test_df.groupby('customer_ID').mean()
+    # grouped df
+    train_df_grouped = train_df.groupby('customer_ID')
+    test_df_grouped = test_df.groupby('customer_ID')
 
-    # merge target
-    train_df = train_labels.merge(train_df,how='left',on='customer_ID')
-    test_df = sub.merge(test_df,how='left',on='customer_ID')
+    # add features mean
+    train_df_mean = train_df_grouped.mean().reset_index()
+    test_df_mean = test_df_grouped.mean().reset_index()
 
-    del train_labels, sub
+    train_df_mean.columns = ['customer_ID']+[f'{c}_mean' for c in train_df_mean.columns if c not in ['customer_ID']]
+    test_df_mean.columns = ['customer_ID']+[f'{c}_mean' for c in test_df_mean.columns if c not in ['customer_ID']]
+
+    # merge mean
+    train_df = train_labels.merge(train_df_mean,how='left',on='customer_ID')
+    test_df = sub.merge(test_df_mean,how='left',on='customer_ID')
+
+    del train_df_mean, test_df_mean
+    gc.collect()
+
+    # add features max
+    train_df_max = train_df_grouped.max().reset_index()
+    test_df_max = test_df_grouped.max().reset_index()
+
+    train_df_max.columns = ['customer_ID']+[f'{c}_max' for c in train_df_max.columns if c not in ['customer_ID']]
+    test_df_max.columns = ['customer_ID']+[f'{c}_max' for c in test_df_max.columns if c not in ['customer_ID']]
+
+    # merge max
+    train_df = train_df.merge(train_df_max,how='left',on='customer_ID')
+    test_df = test_df.merge(test_df_max,how='left',on='customer_ID')
+
+    del train_df_max, test_df_max
+    gc.collect()
+
+    # add features min
+    train_df_min = train_df_grouped.min().reset_index()
+    test_df_min = test_df_grouped.min().reset_index()
+
+    train_df_min.columns = ['customer_ID']+[f'{c}_min' for c in train_df_min.columns if c not in ['customer_ID']]
+    test_df_min.columns = ['customer_ID']+[f'{c}_min' for c in test_df_min.columns if c not in ['customer_ID']]
+
+    # merge max
+    train_df = train_df.merge(train_df_min,how='left',on='customer_ID')
+    test_df = test_df.merge(test_df_min,how='left',on='customer_ID')
+
+    del train_df_min, test_df_min
+    gc.collect()
+
+    # add features last
+    train_df_last = train_df_grouped.nth(-1).reset_index()
+    test_df_last = test_df_grouped.nth(-1).reset_index()
+
+    train_df_last.columns = ['customer_ID']+[f'{c}_last' for c in train_df_last.columns if c not in ['customer_ID']]
+    test_df_last.columns = ['customer_ID']+[f'{c}_last' for c in test_df_last.columns if c not in ['customer_ID']]
+
+    # merge max
+    train_df = train_df.merge(train_df_last,how='left',on='customer_ID')
+    test_df = test_df.merge(test_df_last,how='left',on='customer_ID')
+
+    del train_df_last, test_df_last
+    gc.collect()
+
+    del train_labels, sub, train_df_grouped, test_df_grouped
     gc.collect()    
 
     # drop prediction columns
