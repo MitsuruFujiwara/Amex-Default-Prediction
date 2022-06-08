@@ -6,6 +6,7 @@ import pandas as pd
 import sys
 
 from utils import reduce_mem_usage, to_json, to_feature, line_notify
+from utils import CAT_COLS
 
 #==============================================================================
 # preprocess
@@ -14,6 +15,28 @@ from utils import reduce_mem_usage, to_json, to_feature, line_notify
 IS_DEBUG = False
 
 data_types = json.load(open('../configs/002_data_types.json'))
+
+# get features
+def get_features(df):
+
+    # numeric columns
+    NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
+
+    # aggregate
+    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'last'])
+    df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'nunique'])
+
+    # change column names
+    df_num_agg.columns = ['_'.join(x) for x in df_num_agg.columns]
+    df_cat_agg.columns = ['_'.join(x) for x in df_cat_agg.columns]
+
+    # concat
+    df = pd.concat([df_num_agg, df_cat_agg], axis=1)
+
+    del df_num_agg, df_cat_agg
+    gc.collect()
+
+    return df
 
 def main():
 
@@ -46,79 +69,21 @@ def main():
     # reduce memory usage
     train_df = reduce_mem_usage(train_df)
     test_df = reduce_mem_usage(test_df)
-    
-    # grouped df
-    train_df_grouped = train_df.groupby('customer_ID')
-    test_df_grouped = test_df.groupby('customer_ID')
 
-    # add features mean
-    train_df_mean = train_df_grouped.mean().reset_index()
-    test_df_mean = test_df_grouped.mean().reset_index()
+    # get features
+    train_df = get_features(train_df)
+    test_df = get_features(test_df)
 
-    train_df_mean.columns = ['customer_ID']+[f'{c}_mean' for c in train_df_mean.columns if c not in ['customer_ID']]
-    test_df_mean.columns = ['customer_ID']+[f'{c}_mean' for c in test_df_mean.columns if c not in ['customer_ID']]
-
-    # merge mean
-    train_df = train_labels.merge(train_df_mean,how='left',on='customer_ID')
-    test_df = sub.merge(test_df_mean,how='left',on='customer_ID')
-
-    del train_df_mean, test_df_mean
-    gc.collect()
-
-    # add features max
-    train_df_max = train_df_grouped.max().reset_index()
-    test_df_max = test_df_grouped.max().reset_index()
-
-    train_df_max.columns = ['customer_ID']+[f'{c}_max' for c in train_df_max.columns if c not in ['customer_ID']]
-    test_df_max.columns = ['customer_ID']+[f'{c}_max' for c in test_df_max.columns if c not in ['customer_ID']]
-
-    # merge max
-    train_df = train_df.merge(train_df_max,how='left',on='customer_ID')
-    test_df = test_df.merge(test_df_max,how='left',on='customer_ID')
-
-    del train_df_max, test_df_max
-    gc.collect()
-
-    # add features min
-    train_df_min = train_df_grouped.min().reset_index()
-    test_df_min = test_df_grouped.min().reset_index()
-
-    train_df_min.columns = ['customer_ID']+[f'{c}_min' for c in train_df_min.columns if c not in ['customer_ID']]
-    test_df_min.columns = ['customer_ID']+[f'{c}_min' for c in test_df_min.columns if c not in ['customer_ID']]
-
-    # merge max
-    train_df = train_df.merge(train_df_min,how='left',on='customer_ID')
-    test_df = test_df.merge(test_df_min,how='left',on='customer_ID')
-
-    del train_df_min, test_df_min
-    gc.collect()
-
-    # add features last
-    train_df_last = train_df_grouped.nth(-1).reset_index()
-    test_df_last = test_df_grouped.nth(-1).reset_index()
-
-    train_df_last.columns = ['customer_ID']+[f'{c}_last' for c in train_df_last.columns if c not in ['customer_ID']]
-    test_df_last.columns = ['customer_ID']+[f'{c}_last' for c in test_df_last.columns if c not in ['customer_ID']]
-
-    # merge max
-    train_df = train_df.merge(train_df_last,how='left',on='customer_ID')
-    test_df = test_df.merge(test_df_last,how='left',on='customer_ID')
-
-    del train_df_last, test_df_last
-    gc.collect()
-
-    del train_labels, sub, train_df_grouped, test_df_grouped
-    gc.collect()    
-
-    # drop prediction columns
-    test_df.drop('prediction',axis=1,inplace=True)
-
-    # add is_test flag
+    # add is test flag
     train_df['is_test'] = False
     test_df['is_test'] = True
 
+    # add target
+    train_df = train_labels.merge(train_df,how='left',on='customer_ID')
+    test_df = sub.merge(test_df,how='left',on='customer_ID')
+
     # merge train & test
-    df = train_df.append(test_df)
+    df = pd.concat([train_df,test_df])
 
     del train_df, test_df
     gc.collect()

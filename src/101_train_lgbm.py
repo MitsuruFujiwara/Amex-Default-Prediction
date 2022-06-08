@@ -42,7 +42,7 @@ params['task'] = 'train'
 params['boosting'] = 'gbdt'
 params['objective'] = 'binary'
 params['metric'] = 'binary_logloss'
-params['learning_rate'] = 0.05
+params['learning_rate'] = 0.01
 params['reg_alpha'] = 0.0
 params['min_split_gain'] = 0.0
 params['verbose'] = -1
@@ -80,7 +80,7 @@ def main():
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['S_2_last'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats], groups=train_df['customer_ID'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
