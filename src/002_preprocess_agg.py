@@ -39,10 +39,8 @@ def main():
     # load csv
     train_df = pd.read_parquet('../input/train.parquet')
     train_labels = pd.read_csv('../input/train_labels.csv')
-    oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv')
     test_df = pd.read_parquet('../input/test.parquet')
     test_labels = pd.read_csv('../input/sample_submission.csv')
-    sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv')
 
     # to datetime
     train_df['S_2'] = pd.to_datetime(train_df['S_2'])
@@ -58,6 +56,10 @@ def main():
     test_df['month'] = test_df['S_2'].dt.month
     test_df['year'] = test_df['S_2'].dt.year
     test_df['seasonality'] = np.cos(np.pi*(test_df['S_2'].dt.dayofyear/366*2-1))
+
+    print('loading submission files...')
+    sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
+    oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
 
     # merge sub & oof
     train_df = train_df.merge(oof_df,how='left',on='customer_ID')
