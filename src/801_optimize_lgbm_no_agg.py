@@ -9,7 +9,7 @@ import sys
 import warnings
 
 from glob import glob
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import GroupKFold
 from tqdm import tqdm
 
 from utils import NUM_FOLDS, FEATS_EXCLUDED, line_notify, to_json
@@ -65,14 +65,14 @@ def objective(trial):
               }
 
     # folds
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=47)
+    folds = GroupKFold(n_splits=NUM_FOLDS)
 
     # cv
     eval_dict = lightgbm.cv(params=params,
                             train_set=lgbm_train,
                             metrics=['binary_logloss'],
                             nfold=5,
-                            folds=folds.split(TRAIN_DF[FEATS],groups=TRAIN_DF['target']),
+                            folds=folds.split(TRAIN_DF[FEATS],groups=TRAIN_DF['customer_ID']),
                             num_boost_round=10000,
                             early_stopping_rounds=200,
                             verbose_eval=100,

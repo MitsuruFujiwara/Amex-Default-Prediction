@@ -72,7 +72,7 @@ def objective(trial):
                             train_set=lgbm_train,
                             metrics=['binary_logloss'],
                             nfold=5,
-                            folds=folds.split(TRAIN_DF[FEATS],groups=TRAIN_DF['target']),
+                            folds=folds.split(TRAIN_DF[FEATS],TRAIN_DF['target']),
                             num_boost_round=10000,
                             early_stopping_rounds=200,
                             verbose_eval=100,
