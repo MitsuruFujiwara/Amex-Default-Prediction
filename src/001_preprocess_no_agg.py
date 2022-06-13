@@ -24,9 +24,9 @@ def main():
         nrows=None
 
     # load csv
-    train_df = pd.read_csv('../input/train_data.csv',nrows=nrows,dtype=data_types)
+    train_df = pd.read_parquet('../input/train.parquet')
     train_labels = pd.read_csv('../input/train_labels.csv',nrows=nrows)
-    test_df = pd.read_csv('../input/test_data.csv',nrows=nrows,dtype=data_types)
+    test_df = pd.read_parquet('../input/test.parquet')
     sub = pd.read_csv('../input/sample_submission.csv')
 
     # merge target

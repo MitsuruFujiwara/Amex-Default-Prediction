@@ -20,19 +20,17 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/101_lgbm.json'))
+configs = json.load(open('../configs/102_lgbm_agg.json'))
 
-feats_path = '../feats/f001_*.feather'
+feats_path = '../feats/f002_*.feather'
 
-sub_path = '../output/submission_lgbm.csv'
-oof_path = '../output/oof_lgbm.csv'
+sub_path = '../output/submission_lgbm_agg.csv'
+oof_path = '../output/oof_lgbm_agg.csv'
 
-model_path = '../models/lgbm_'
+model_path = '../models/lgbm_agg_'
 
-imp_path_png = '../imp/lgbm_importances.png'
-imp_path_csv = '../imp/feature_importance_lgbm.csv'
-
-roc_path = '../imp/roc.png'
+imp_path_png = '../imp/lgbm_importances_agg.png'
+imp_path_csv = '../imp/feature_importance_lgbm_agg.csv'
 
 params = configs['params']
 

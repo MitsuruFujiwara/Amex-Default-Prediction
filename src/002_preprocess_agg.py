@@ -46,10 +46,10 @@ def main():
         nrows=None
 
     # load csv
-    train_df = pd.read_csv('../input/train_data.csv',nrows=nrows,dtype=data_types)
+    train_df = pd.read_parquet('../input/train.parquet')
     train_labels = pd.read_csv('../input/train_labels.csv',nrows=nrows)
     oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',nrows=nrows)
-    test_df = pd.read_csv('../input/test_data.csv',nrows=nrows,dtype=data_types)
+    test_df = pd.read_parquet('../input/test.parquet')
     test_labels = pd.read_csv('../input/sample_submission.csv')
     sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',nrows=nrows,dtype=data_types)
 
