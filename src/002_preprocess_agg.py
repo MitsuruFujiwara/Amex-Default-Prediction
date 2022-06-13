@@ -9,12 +9,12 @@ from utils import reduce_mem_usage, to_json, to_feature, line_notify
 from utils import CAT_COLS
 
 #==============================================================================
-# preprocess
+# preprocess aggregation
 #==============================================================================
 
 IS_DEBUG = False
 
-data_types = json.load(open('../configs/002_data_types.json'))
+data_types = json.load(open('../configs/000_data_types.json'))
 
 # get features
 def get_features(df):
@@ -48,8 +48,10 @@ def main():
     # load csv
     train_df = pd.read_csv('../input/train_data.csv',nrows=nrows,dtype=data_types)
     train_labels = pd.read_csv('../input/train_labels.csv',nrows=nrows)
+    oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',nrows=nrows)
     test_df = pd.read_csv('../input/test_data.csv',nrows=nrows,dtype=data_types)
-    sub = pd.read_csv('../input/sample_submission.csv')
+    test_labels = pd.read_csv('../input/sample_submission.csv')
+    sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',nrows=nrows,dtype=data_types)
 
     # to datetime
     train_df['S_2'] = pd.to_datetime(train_df['S_2'])
@@ -66,6 +68,13 @@ def main():
     test_df['year'] = test_df['S_2'].dt.year
     test_df['seasonality'] = np.cos(np.pi*(test_df['S_2'].dt.dayofyear/366*2-1))
 
+    # merge sub & oof
+    train_df = train_df.merge(oof_df,how='left',on='customer_ID')
+    test_df = test_df.merge(sub_df,how='left',on='customer_ID')
+
+    del oof_df, sub_df
+    gc.collect()
+
     # reduce memory usage
     train_df = reduce_mem_usage(train_df)
     test_df = reduce_mem_usage(test_df)
@@ -80,7 +89,7 @@ def main():
 
     # add target
     train_df = train_labels.merge(train_df,how='left',on='customer_ID')
-    test_df = sub.merge(test_df,how='left',on='customer_ID')
+    test_df = test_labels.merge(test_df,how='left',on='customer_ID')
 
     # merge train & test
     df = pd.concat([train_df,test_df])
@@ -89,11 +98,11 @@ def main():
     gc.collect()
 
     # save as feather
-    to_feature(df, '../feats/f001')
+    to_feature(df, '../feats/f002')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}
-    to_json(features_json,'../configs/001_all_features.json')
+    to_json(features_json,'../configs/002_all_features_agg.json')
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))

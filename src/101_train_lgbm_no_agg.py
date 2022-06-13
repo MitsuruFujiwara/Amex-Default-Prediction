@@ -21,19 +21,17 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/101_lgbm.json'))
+configs = json.load(open('../configs/101_lgbm_no_agg.json'))
 
 feats_path = '../feats/f001_*.feather'
 
-sub_path = '../output/submission_lgbm.csv'
-oof_path = '../output/oof_lgbm.csv'
+sub_path = '../output/submission_lgbm_no_agg.csv'
+oof_path = '../output/oof_lgbm_no_agg.csv'
 
-model_path = '../models/lgbm_'
+model_path = '../models/lgbm_no_agg_'
 
-imp_path_png = '../imp/lgbm_importances.png'
-imp_path_csv = '../imp/feature_importance_lgbm.csv'
-
-roc_path = '../imp/roc.png'
+imp_path_png = '../imp/lgbm_importances_no_agg.png'
+imp_path_csv = '../imp/feature_importance_lgbm_no_agg.csv'
 
 params = configs['params']
 
@@ -42,7 +40,7 @@ params['task'] = 'train'
 params['boosting'] = 'gbdt'
 params['objective'] = 'binary'
 params['metric'] = 'binary_logloss'
-params['learning_rate'] = 0.01
+params['learning_rate'] = 0.05
 params['reg_alpha'] = 0.0
 params['min_split_gain'] = 0.0
 params['verbose'] = -1
@@ -104,9 +102,6 @@ def main():
                         verbose_eval=100
                         )
 
-        # save model
-        clf.save_model(f'{model_path}{n_fold}.txt')
-
         # save predictions
         oof_preds[valid_idx] = clf.predict(valid_x,num_iteration=clf.best_iteration)
         sub_preds += clf.predict(test_df[feats],num_iteration=clf.best_iteration) / folds.n_splits
@@ -118,27 +113,27 @@ def main():
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
-        fold_score = amex_metric_mod(valid_y,oof_preds[valid_idx])
+        fold_score = log_loss(valid_y,oof_preds[valid_idx])
 
-        print(f'Fold {n_fold+1} kaggle metric: {fold_score}')
+        print(f'Fold {n_fold+1} logloss: {fold_score}')
 
         del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
 
     # Full score and LINE Notify
-    full_score = round(amex_metric_mod(train_df['target'], oof_preds),6)
-    line_notify(f'Full kaggle metric: {full_score}')
+    full_score = round(log_loss(train_df['target'], oof_preds),6)
+    line_notify(f'Full logloss: {full_score}')
 
     # save importance
     save_imp(imp_df,imp_path_png,imp_path_csv)
 
     # save prediction
-    train_df.loc[:,'prediction'] = oof_preds
-    test_df.loc[:,'prediction'] = sub_preds
+    train_df.loc[:,'pred_no_agg'] = oof_preds
+    test_df.loc[:,'pred_no_agg'] = sub_preds
 
     # save csv
-    train_df[['customer_ID','target','prediction']].to_csv(oof_path, index=False)
-    test_df[['customer_ID','prediction']].to_csv(sub_path, index=False)
+    train_df[['customer_ID','pred_no_agg']].to_csv(oof_path, index=False)
+    test_df[['customer_ID','pred_no_agg']].to_csv(sub_path, index=False)
 
     # LINE notify
     line_notify(f'{sys.argv[0]} done.')

@@ -17,7 +17,7 @@ NUM_FOLDS = 5
 
 FEATS_EXCLUDED = ['customer_ID','target','is_test','index',
                   'S_2','S_2_max','D_63_max','S_2_min','D_63_min','S_2_last','D_63_last','D_64_last',
-                  'S_2_first','D_63_first','D_64_first']
+                  'S_2_first','D_63_first','D_64_first','D_63','D_64']
 
 CAT_COLS = ['B_30','B_38','D_114','D_116','D_117','D_120','D_126','D_63','D_64','D_66','D_68']
 
