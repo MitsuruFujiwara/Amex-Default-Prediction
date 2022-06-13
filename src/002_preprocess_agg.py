@@ -12,10 +12,6 @@ from utils import CAT_COLS
 # preprocess aggregation
 #==============================================================================
 
-IS_DEBUG = False
-
-data_types = json.load(open('../configs/000_data_types.json'))
-
 # get features
 def get_features(df):
 
@@ -40,18 +36,13 @@ def get_features(df):
 
 def main():
 
-    if IS_DEBUG:
-        nrows=100000
-    else:
-        nrows=None
-
     # load csv
     train_df = pd.read_parquet('../input/train.parquet')
-    train_labels = pd.read_csv('../input/train_labels.csv',nrows=nrows)
-    oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',nrows=nrows)
+    train_labels = pd.read_csv('../input/train_labels.csv')
+    oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv')
     test_df = pd.read_parquet('../input/test.parquet')
     test_labels = pd.read_csv('../input/sample_submission.csv')
-    sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',nrows=nrows,dtype=data_types)
+    sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv')
 
     # to datetime
     train_df['S_2'] = pd.to_datetime(train_df['S_2'])

@@ -12,20 +12,11 @@ from utils import CAT_COLS
 # preprocess no aggregation
 #==============================================================================
 
-IS_DEBUG = False
-
-data_types = json.load(open('../configs/000_data_types.json'))
-
 def main():
-
-    if IS_DEBUG:
-        nrows=100000
-    else:
-        nrows=None
 
     # load csv
     train_df = pd.read_parquet('../input/train.parquet')
-    train_labels = pd.read_csv('../input/train_labels.csv',nrows=nrows)
+    train_labels = pd.read_csv('../input/train_labels.csv')
     test_df = pd.read_parquet('../input/test.parquet')
     sub = pd.read_csv('../input/sample_submission.csv')
 
