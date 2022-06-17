@@ -15,7 +15,7 @@ from sklearn.metrics import roc_curve
 
 NUM_FOLDS = 5
 
-FEATS_EXCLUDED = ['customer_ID','target','is_test','index',
+FEATS_EXCLUDED = ['customer_ID','target','is_test','index','prediction',
                   'S_2','S_2_max','D_63_max','S_2_min','D_63_min','S_2_last','D_63_last','D_64_last',
                   'S_2_first','D_63_first','D_64_first','D_63','D_64']
 

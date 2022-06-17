@@ -888,16 +888,6 @@
         "day_min",
         "day_max",
         "day_last",
-        "month_mean",
-        "month_std",
-        "month_min",
-        "month_max",
-        "month_last",
-        "year_mean",
-        "year_std",
-        "year_min",
-        "year_max",
-        "year_last",
         "seasonality_mean",
         "seasonality_std",
         "seasonality_min",
@@ -936,8 +926,7 @@
         "D_68_count",
         "D_68_last",
         "D_68_nunique",
-        "is_test",
-        "prediction"
+        "is_test"
     ],
     "params": {
         "max_depth": 5,
