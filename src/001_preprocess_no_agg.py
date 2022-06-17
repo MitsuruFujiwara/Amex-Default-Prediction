@@ -30,10 +30,6 @@ def main():
     # drop prediction
     test_df.drop('prediction',axis=1,inplace=True)
 
-    # reduce memory usage
-    train_df = reduce_mem_usage(train_df)
-    test_df = reduce_mem_usage(test_df)
-
     # add is test flag
     train_df['is_test'] = False
     test_df['is_test'] = True
@@ -54,8 +50,12 @@ def main():
     df['seasonality'] = np.cos(np.pi*(df['S_2'].dt.dayofyear/366*2-1))
 
     # target encoding
-    for c in CAT_COLS:
+    print('target encoding...')
+    for c in CAT_COLS+['day','month']:
         df[f'{c}_te'] = df[c].map(df[[c,'target']].groupby(c).mean()['target'])
+
+    # drop unnecessary columns
+    df.drop(['S_2','B_29'],axis=1,inplace=True)
 
     # save as feather
     to_feature(df, '../feats/f001')

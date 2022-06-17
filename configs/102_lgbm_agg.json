@@ -937,11 +937,11 @@
         "D_68_last",
         "D_68_nunique",
         "is_test",
-        "mean",
-        "std",
-        "min",
-        "max",
-        "last",
+        "pred_no_agg_mean",
+        "pred_no_agg_std",
+        "pred_no_agg_min",
+        "pred_no_agg_max",
+        "pred_no_agg_last",
         "prediction"
     ],
     "params": {

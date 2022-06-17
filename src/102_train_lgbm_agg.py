@@ -39,7 +39,7 @@ params['task'] = 'train'
 params['boosting'] = 'gbdt'
 params['objective'] = 'binary'
 params['metric'] = 'binary_logloss'
-params['learning_rate'] = 0.05
+params['learning_rate'] = 0.01
 params['reg_alpha'] = 0.0
 params['min_split_gain'] = 0.0
 params['verbose'] = -1
@@ -64,7 +64,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=47)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=46)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
