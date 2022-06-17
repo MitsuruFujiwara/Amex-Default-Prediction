@@ -493,11 +493,6 @@
         "R_16_min",
         "R_16_max",
         "R_16_last",
-        "B_29_mean",
-        "B_29_std",
-        "B_29_min",
-        "B_29_max",
-        "B_29_last",
         "S_18_mean",
         "S_18_std",
         "S_18_min",
@@ -942,6 +937,11 @@
         "D_68_last",
         "D_68_nunique",
         "is_test",
+        "mean",
+        "std",
+        "min",
+        "max",
+        "last",
         "prediction"
     ],
     "params": {

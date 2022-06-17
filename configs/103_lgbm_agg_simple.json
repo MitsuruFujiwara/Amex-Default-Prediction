@@ -937,11 +937,16 @@
         "D_68_last",
         "D_68_nunique",
         "is_test",
-        "mean",
-        "std",
-        "min",
-        "max",
-        "last",
         "prediction"
-    ]
+    ],
+    "params": {
+        "max_depth": 5,
+        "num_leaves": 91,
+        "subsample": 0.9148391296011076,
+        "subsample_freq": 11,
+        "colsample_bytree": 0.0751384981872349,
+        "min_child_samples": 39,
+        "min_child_weight": 0.13869085318224264,
+        "reg_lambda": 0.23210151878843618
+    }
 }

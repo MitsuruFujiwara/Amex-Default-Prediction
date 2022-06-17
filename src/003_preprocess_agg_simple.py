@@ -14,7 +14,6 @@ from utils import CAT_COLS
 
 # get features
 def get_features(df):
-    print('get features...')
 
     # numeric columns
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
@@ -62,6 +61,10 @@ def main():
     train_df.drop(['S_2','B_29'],axis=1,inplace=True)
     test_df.drop(['S_2','B_29'],axis=1,inplace=True)
 
+    # reduce memory usage
+    train_df = reduce_mem_usage(train_df)
+    test_df = reduce_mem_usage(test_df)
+
     # get features
     train_df = get_features(train_df)
     test_df = get_features(test_df)
@@ -74,30 +77,6 @@ def main():
     train_df = train_labels.merge(train_df,how='left',on='customer_ID')
     test_df = test_labels.merge(test_df,how='left',on='customer_ID')
 
-    print('load submission file...')
-    sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    sub_df = sub_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last'])
-
-    # change column names
-    sub_df.columns = ['_'.join(x) for x in sub_df.columns]
-
-    test_df = test_df.merge(sub_df,how='left',on='customer_ID')
-
-    del sub_df
-    gc.collect()
-
-    print('load oof file...')
-    oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    oof_df = oof_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last'])
-
-    # change column names
-    oof_df.columns = ['_'.join(x) for x in oof_df.columns]
-
-    train_df = train_df.merge(oof_df,how='left',on='customer_ID')
-
-    del oof_df
-    gc.collect()
-
     # merge train & test
     df = pd.concat([train_df,test_df])
 
@@ -105,11 +84,11 @@ def main():
     gc.collect()
 
     # save as feather
-    to_feature(df, '../feats/f002')
+    to_feature(df, '../feats/f003')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}
-    to_json(features_json,'../configs/002_all_features_agg.json')
+    to_json(features_json,'../configs/003_all_features_agg_simple.json')
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))

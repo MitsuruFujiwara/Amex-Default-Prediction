@@ -937,11 +937,6 @@
         "D_68_last",
         "D_68_nunique",
         "is_test",
-        "mean",
-        "std",
-        "min",
-        "max",
-        "last",
         "prediction"
     ]
 }
