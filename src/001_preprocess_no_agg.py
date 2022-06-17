@@ -6,7 +6,7 @@ import pandas as pd
 import sys
 
 from utils import reduce_mem_usage, to_json, to_feature, line_notify
-from utils import CAT_COLS
+from utils import CAT_COLS, COLS_DROP
 
 #==============================================================================
 # preprocess no aggregation
@@ -45,17 +45,15 @@ def main():
 
     # datetime features
     df['day'] = df['S_2'].dt.day
-    df['month'] = df['S_2'].dt.month
-    df['year'] = df['S_2'].dt.year
-    df['seasonality'] = np.cos(np.pi*(df['S_2'].dt.dayofyear/366*2-1))
+    df['seasonality'] = np.cos(np.pi*(df['S_2'].dt.day/31*2-1))
 
     # target encoding
     print('target encoding...')
-    for c in CAT_COLS+['day','month']:
+    for c in CAT_COLS+['day']:
         df[f'{c}_te'] = df[c].map(df[[c,'target']].groupby(c).mean()['target'])
 
     # drop unnecessary columns
-    df.drop(['S_2','B_29'],axis=1,inplace=True)
+    df.drop(['S_2']+COLS_DROP,axis=1,inplace=True)
 
     # save as feather
     to_feature(df, '../feats/f001')

@@ -19,6 +19,11 @@ FEATS_EXCLUDED = ['customer_ID','target','is_test','index','prediction',
                   'S_2','S_2_max','D_63_max','S_2_min','D_63_min','S_2_last','D_63_last','D_64_last',
                   'S_2_first','D_63_first','D_64_first','D_63','D_64']
 
+# https://www.kaggle.com/code/zakopur0/adversarial-validation-train-vs-test
+COLS_DROP = ['B_29', 'R_1', 'D_59', 'S_11', 'S_15', 'S_9', 'S_24', 'D_121', 'S_27', 'S_22', 'D_45', 
+             'R_27', 'D_62', 'S_13', 'D_91', 'D_39', 'D_42', 'D_77', 'B_8', 'D_142', 'P_4', 'B_17', 
+             'P_3', 'D_120', 'S_17','D_60']
+
 CAT_COLS = ['B_30','B_38','D_114','D_116','D_117','D_120','D_126','D_63','D_64','D_66','D_68']
 
 COMPETITION_NAME = 'amex-default-prediction'

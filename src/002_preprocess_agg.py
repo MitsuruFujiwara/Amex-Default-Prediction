@@ -6,11 +6,14 @@ import pandas as pd
 import sys
 
 from utils import reduce_mem_usage, to_json, to_feature, line_notify
-from utils import CAT_COLS
+from utils import CAT_COLS, COLS_DROP
 
 #==============================================================================
 # preprocess aggregation
 #==============================================================================
+
+# drop unnecessary columns
+CAT_COLS = [c for c in CAT_COLS if c not in COLS_DROP]
 
 # get features
 def get_features(df):
@@ -49,18 +52,14 @@ def main():
 
     # datetime features
     train_df['day'] = train_df['S_2'].dt.day
-    train_df['month'] = train_df['S_2'].dt.month
-    train_df['year'] = train_df['S_2'].dt.year
-    train_df['seasonality'] = np.cos(np.pi*(train_df['S_2'].dt.dayofyear/366*2-1))
+    train_df['seasonality'] = np.cos(np.pi*(train_df['S_2'].dt.day/31*2-1))
 
     test_df['day'] = test_df['S_2'].dt.day
-    test_df['month'] = test_df['S_2'].dt.month
-    test_df['year'] = test_df['S_2'].dt.year
-    test_df['seasonality'] = np.cos(np.pi*(test_df['S_2'].dt.dayofyear/366*2-1))
+    test_df['seasonality'] = np.cos(np.pi*(test_df['S_2'].dt.day/31*2-1))
 
     # drop unnecessary columns
-    train_df.drop(['S_2','B_29'],axis=1,inplace=True)
-    test_df.drop(['S_2','B_29'],axis=1,inplace=True)
+    train_df.drop(['S_2']+COLS_DROP,axis=1,inplace=True)
+    test_df.drop(['S_2']+COLS_DROP,axis=1,inplace=True)
 
     # get features
     train_df = get_features(train_df)

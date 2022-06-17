@@ -9,4 +9,4 @@ python 101_train_lgbm_no_agg.py
 python 002_preprocess_agg.py
 python 102_train_lgbm_agg.py
 
-kaggle competitions submit -c amex-default-prediction -f ../output/submission_lgbm_agg.csv
+kaggle competitions submit -c amex-default-prediction -f ../output/submission_lgbm_agg.csv -m "#x cv:xxx"
