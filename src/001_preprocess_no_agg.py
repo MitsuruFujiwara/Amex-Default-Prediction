@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import sys
 
+from tqdm import tqdm
+
 from utils import to_json, to_feature, line_notify
 from utils import CAT_COLS
 
@@ -18,17 +20,16 @@ def main():
     train_df = pd.read_parquet('../input/train.parquet')
     train_labels = pd.read_csv('../input/train_labels.csv')
     test_df = pd.read_parquet('../input/test.parquet')
-    sub = pd.read_csv('../input/sample_submission.csv')
 
     # merge target
     train_df = train_df.merge(train_labels,how='left',on='customer_ID')
-    test_df = test_df.merge(sub,how='left',on='customer_ID')
 
-    del train_labels, sub
-    gc.collect()
-
-    # drop prediction
-    test_df.drop('prediction',axis=1,inplace=True)
+    # target encoding
+    print('target encoding...')
+    for c in tqdm(CAT_COLS):
+        dict_target = train_df[[c,'target']].groupby(c).mean()['target']
+        train_df[f'{c}_te'] = train_df[c].map(dict_target)
+        test_df[f'{c}_te'] = test_df[c].map(dict_target)
 
     # add is test flag
     train_df['is_test'] = False
@@ -46,11 +47,6 @@ def main():
     # datetime features
     df['day'] = df['S_2'].dt.day
     df['seasonality'] = np.cos(np.pi*(df['S_2'].dt.day/31*2-1))
-
-    # target encoding
-    print('target encoding...')
-    for c in CAT_COLS+['day']:
-        df[f'{c}_te'] = df[c].map(df[[c,'target']].groupby(c).mean()['target'])
 
     # drop unnecessary columns
     df.drop('S_2',axis=1,inplace=True)
