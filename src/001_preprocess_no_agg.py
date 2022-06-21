@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import sys
 
-from utils import reduce_mem_usage, to_json, to_feature, line_notify
-from utils import CAT_COLS, COLS_DROP
+from utils import to_json, to_feature, line_notify
+from utils import CAT_COLS
 
 #==============================================================================
 # preprocess no aggregation
@@ -53,7 +53,7 @@ def main():
         df[f'{c}_te'] = df[c].map(df[[c,'target']].groupby(c).mean()['target'])
 
     # drop unnecessary columns
-    df.drop(['S_2']+COLS_DROP,axis=1,inplace=True)
+    df.drop('S_2',axis=1,inplace=True)
 
     # save as feather
     to_feature(df, '../feats/f001')

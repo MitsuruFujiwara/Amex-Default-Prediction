@@ -12,9 +12,6 @@ from utils import CAT_COLS
 # preprocess aggregation
 #==============================================================================
 
-# drop unnecessary columns
-CAT_COLS = [c for c in CAT_COLS if c not in COLS_DROP]
-
 # get features
 def get_features(df):
 
@@ -57,8 +54,8 @@ def main():
     test_df['seasonality'] = np.cos(np.pi*(test_df['S_2'].dt.day/31*2-1))
 
     # drop unnecessary columns
-    train_df.drop(['S_2']+COLS_DROP,axis=1,inplace=True)
-    test_df.drop(['S_2']+COLS_DROP,axis=1,inplace=True)
+    train_df.drop('S_2',axis=1,inplace=True)
+    test_df.drop('S_2',axis=1,inplace=True)
 
     # reduce memory usage
     train_df = reduce_mem_usage(train_df)
