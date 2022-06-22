@@ -97,7 +97,7 @@ def main():
         clf.save_model(f'{model_path}{n_fold}.txt')
 
         # save predictions
-        oof_preds[valid_idx] = clf.predict(valid_x)
+        oof_preds[valid_idx] = clf.predict(xgb_test)
         sub_preds += clf.predict(test_df_dmtrx) / folds.n_splits
 
         # save importances
