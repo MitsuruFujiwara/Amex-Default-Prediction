@@ -56,9 +56,9 @@ RUN git clone --recursive --branch stable --depth 1 https://github.com/Microsoft
 # Other Libraries
 #==============================================================================
 
-RUN pip install jpholiday lxml more_itertools
-RUN conda install -q -y numpy scipy scikit-learn jupyter notebook ipython pandas matplotlib bs4 seaborn html5lib
-RUN conda install -y -c conda-forge feather-format selenium optuna
+RUN pip install catboost xgboost kaggle
+RUN conda install -q -y numpy scipy scikit-learn jupyter notebook ipython pandas matplotlib seaborn
+RUN conda install -y -c conda-forge feather-format optuna
 
 #==============================================================================
 # System CleanUp
