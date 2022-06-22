@@ -32,7 +32,10 @@ def main():
 
     # calc prediction
     sub['prediction'] += 0.5*sub_lgbm['prediction']+0.5*sub_cb['prediction']
-    oof['prediction'] += 0.5*oof_lgbm['prediction']+0.5*oof_cb['prediction']
+    oof['prediction'] = 0.5*oof_lgbm['prediction']+0.5*oof_cb['prediction']
+
+    # save csv
+    sub[['customer_ID','prediction']].to_csv(sub_path, index=False)
 
     # Full score and LINE Notify
     full_score = round(amex_metric_mod(oof['target'], oof['prediction']),6)
