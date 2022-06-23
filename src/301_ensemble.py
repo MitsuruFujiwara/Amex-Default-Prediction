@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import sys
 
+from sklearn.linear_model import Ridge
+
 from utils import amex_metric_mod, line_notify
 
 #==============================================================================
@@ -31,8 +33,8 @@ def main():
     #TODO: logistic regression
 
     # calc prediction
-    sub['prediction'] += 0.5*sub_lgbm['prediction']+0.5*sub_cb['prediction']
-    oof['prediction'] = 0.5*oof_lgbm['prediction']+0.5*oof_cb['prediction']
+    sub['prediction'] += 0.9*sub_lgbm['prediction']+0.1*sub_cb['prediction']
+    oof['prediction'] = 0.9*oof_lgbm['prediction']+0.1*oof_cb['prediction']
 
     # save csv
     sub[['customer_ID','prediction']].to_csv(sub_path, index=False)
