@@ -35,18 +35,26 @@ def main():
     train_df['is_test'] = False
     test_df['is_test'] = True
 
+    # to datetime
+    train_df['S_2'] = pd.to_datetime(train_df['S_2'])
+    test_df['S_2'] = pd.to_datetime(test_df['S_2'])
+
+    # days diff features
+    train_df['days_diff'] = train_df[['customer_ID','S_2']].groupby('customer_ID').diff()['S_2'].dt.days
+    test_df['days_diff'] = test_df[['customer_ID','S_2']].groupby('customer_ID').diff()['S_2'].dt.days
+
     # merge train & test
     df = pd.concat([train_df,test_df])
 
     del train_df, test_df
     gc.collect()
 
-    # to datetime
-    df['S_2'] = pd.to_datetime(df['S_2'])
-
     # datetime features
     df['day'] = df['S_2'].dt.day
-    df['seasonality'] = np.cos(np.pi*(df['S_2'].dt.day/31*2-1))
+    df['month'] = df['S_2'].dt.month
+    df['year'] = df['S_2'].dt.year
+    df['seasonality_m'] = np.cos(np.pi*(df['S_2'].dt.day/31*2-1))
+    df['seasonality_y'] = np.cos(np.pi*(df['S_2'].dt.dayofyear/366*2-1))
 
     # drop unnecessary columns
     df.drop('S_2',axis=1,inplace=True)

@@ -203,7 +203,11 @@
         "D_66_te",
         "D_68_te",
         "is_test",
+        "days_diff",
         "day",
-        "seasonality"
+        "month",
+        "year",
+        "seasonality_m",
+        "seasonality_y"
     ]
 }
