@@ -1,4 +1,5 @@
 
+import gc
 import numpy as np
 import pandas as pd
 import sys
@@ -30,11 +31,26 @@ def main():
     oof_lgbm = pd.read_csv(oof_path_lgbm)
     oof_cb = pd.read_csv(oof_path_cb)
 
-    #TODO: logistic regression
+    # rename columns
+    oof_lgbm.rename(columns={'prediction': 'prediction_lgbm'},inplace=True)
+    oof_cb.rename(columns={'prediction': 'prediction_cb'},inplace=True)
+
+    # merge oof
+    oof = oof.merge(oof_lgbm,on=['customer_ID','target'],how='left')
+    oof = oof.merge(oof_cb,on=['customer_ID','target'],how='left')
+
+    del oof_lgbm, oof_cb
+    gc.collect()
+
+    # ridge regression
+    reg = Ridge(alpha=1.0,fit_intercept=False,random_state=47)
+    reg.fit(oof[['prediction_lgbm','prediction_cb']],oof['target'])
+
+    print('weights: {}'.format(reg.coef_))
 
     # calc prediction
-    sub['prediction'] += 0.9*sub_lgbm['prediction']+0.1*sub_cb['prediction']
-    oof['prediction'] = 0.9*oof_lgbm['prediction']+0.1*oof_cb['prediction']
+    sub['prediction'] += reg.coef_[0]*sub_lgbm['prediction']+reg.coef_[1]*sub_cb['prediction']
+    oof['prediction'] = reg.coef_[0]*oof['prediction_lgbm']+reg.coef_[1]*oof['prediction_cb']
 
     # save csv
     sub[['customer_ID','prediction']].to_csv(sub_path, index=False)

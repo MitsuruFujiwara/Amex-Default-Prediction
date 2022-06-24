@@ -103,8 +103,7 @@ def main():
         # save importances
         fold_importance_df = pd.DataFrame.from_dict(clf.get_score(importance_type='gain'), orient='index', columns=['importance'])
         fold_importance_df["feature"] = fold_importance_df.index.tolist()
-        fold_importance_df["fold"] = n_fold + 1
-        feature_importance_df = pd.concat([feature_importance_df, fold_importance_df], axis=0)
+        imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
         fold_score = amex_metric_mod(valid_y,oof_preds[valid_idx])
