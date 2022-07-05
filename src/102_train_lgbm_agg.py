@@ -11,8 +11,8 @@ from glob import glob
 from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
-from utils import save_imp, amex_metric_mod, line_notify
-from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import save_imp, amex_metric_mod, lgb_amex_metric, line_notify
+from utils import NUM_FOLDS, FEATS_EXCLUDED, CAT_COLS
 
 #==============================================================================
 # Train LightGBM
@@ -36,17 +36,12 @@ params = configs['params']
 
 #params['device'] = 'gpu'
 params['task'] = 'train'
-params['boosting'] = 'gbdt'
+params['boosting'] = 'dart'
 params['objective'] = 'binary'
 params['metric'] = 'binary_logloss'
 params['learning_rate'] = 0.01
-params['reg_alpha'] = 0.0
-params['min_split_gain'] = 0.0
 params['verbose'] = -1
 #params['num_threads'] = -1
-params['seed'] = 47
-params['bagging_seed'] = 47
-params['drop_seed'] = 47
 
 def main():
     # load feathers
@@ -76,6 +71,9 @@ def main():
     # features to use
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
+    # categorical features
+    cat_features = [f'{cf}_last' for cf in CAT_COLS]
+
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats],train_df['target'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
@@ -84,21 +82,27 @@ def main():
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
+                                categorical_feature = cat_features,
                                 free_raw_data=False)
 
         lgb_test = lgb.Dataset(valid_x,
                                label=valid_y,
+                               categorical_feature = cat_features,
                                free_raw_data=False)
 
         # train
         clf = lgb.train(
                         params,
                         lgb_train,
+                        feval = lgb_amex_metric,
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
                         num_boost_round=10000,
                         early_stopping_rounds= 200,
-                        verbose_eval=100
+                        verbose_eval=100,
+                        seed=42*(n_fold+1),
+                        bagging_seed=42*(n_fold+1),
+                        drop_seed=42*(n_fold+1)
                         )
 
         # save model

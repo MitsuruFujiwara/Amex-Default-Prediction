@@ -33,10 +33,12 @@ imp_path_png = '../imp/xgb_importances_agg.png'
 imp_path_csv = '../imp/feature_importance_xgb_agg.csv'
 
 params = { 
-          'max_depth':5,
-          'learning_rate':0.01, 
-          'subsample':0.8,
-          'colsample_bytree':0.6, 
+          'max_depth':7,
+          'learning_rate':0.03,
+          'subsample':0.88,
+          'colsample_bytree':0.5,
+          'gamma': 1.5,
+          'min_child_weight': 8,
           'eval_metric':'logloss',
           'objective':'binary:logistic',
           'random_state':47

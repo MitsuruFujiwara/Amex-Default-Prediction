@@ -12,7 +12,7 @@ from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
 from utils import save_imp, amex_metric_mod, line_notify
-from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import CustomMetric, NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
 # Train CatBoost
@@ -32,17 +32,14 @@ model_path = '../models/cb_agg_'
 imp_path_png = '../imp/cb_importances_agg.png'
 imp_path_csv = '../imp/feature_importance_cb_agg.csv'
 
-params = configs['params']
-
 params ={
         'loss_function': 'Logloss',
-        'custom_metric': 'Logloss',
-        'eval_metric': 'Logloss',
+        'custom_metric': CustomMetric,
+        'eval_metric': CustomMetric,
         'learning_rate': 0.01,
         'early_stopping_rounds':200,
         'verbose_eval':100,
         'train_dir':'../output/catboost_info',
-        'random_seed':47
         }
 
 def main():
@@ -82,6 +79,9 @@ def main():
         cb_train = cb.Pool(train_x,label=train_y)
 
         cb_test = cb.Pool(valid_x,label=valid_y)
+
+        # change seed by folds
+        params['random_seed'] = 42*(n_fold+1)
 
         # train
         clf = cb.train(
