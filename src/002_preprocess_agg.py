@@ -22,7 +22,7 @@ def get_features(df):
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
 
     # aggregate
-    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'last'])
+    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'sum', 'last'])
     df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'nunique'])
 
     # change column names
