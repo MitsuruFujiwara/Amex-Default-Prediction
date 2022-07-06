@@ -1,47 +1,48 @@
 
 import gc
 import json
-import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import sys
 import warnings
+import xgboost as xgb
 
 from glob import glob
 from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
-from utils import save_imp, amex_metric_mod, lgb_amex_metric, line_notify
-from utils import NUM_FOLDS, FEATS_EXCLUDED, CAT_COLS
+from utils import save_imp, amex_metric_mod, line_notify
+from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
-# Train LightGBM
+# Train XGBoost
 #==============================================================================
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/102_lgbm_agg.json'))
+configs = json.load(open('../configs/105_xgb_agg.json'))
 
 feats_path = '../feats/f002_*.feather'
 
-sub_path = '../output/submission_lgbm_agg.csv'
-oof_path = '../output/oof_lgbm_agg.csv'
+sub_path = '../output/submission_xgb_agg.csv'
+oof_path = '../output/oof_xgb_agg.csv'
 
-model_path = '../models/lgbm_agg_'
+model_path = '../models/xgb_agg_'
 
-imp_path_png = '../imp/lgbm_importances_agg.png'
-imp_path_csv = '../imp/feature_importance_lgbm_agg.csv'
+imp_path_png = '../imp/xgb_importances_agg.png'
+imp_path_csv = '../imp/feature_importance_xgb_agg.csv'
 
-params = configs['params']
-
-#params['device'] = 'gpu'
-params['task'] = 'train'
-params['boosting'] = 'dart'
-params['objective'] = 'binary'
-params['metric'] = 'binary_logloss'
-params['learning_rate'] = 0.01
-params['verbose'] = -1
-#params['num_threads'] = -1
+params = { 
+          'max_depth':7,
+          'learning_rate':0.03,
+          'subsample':0.88,
+          'colsample_bytree':0.5,
+          'gamma': 1.5,
+          'min_child_weight': 8,
+          'eval_metric':'logloss',
+          'objective':'binary:logistic',
+          'booster': 'dart'
+        }
 
 def main():
     # load feathers
@@ -71,8 +72,8 @@ def main():
     # features to use
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
-    # categorical features
-    cat_features = [f'{cf}_last' for cf in CAT_COLS]
+    # dmatrix for test_df
+    test_df_dmtrx = xgb.DMatrix(test_df[feats])
 
     # k-fold
     for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats],train_df['target'])):
@@ -80,45 +81,33 @@ def main():
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
         # set data structure
-        lgb_train = lgb.Dataset(train_x,
-                                label=train_y,
-#                                categorical_feature = cat_features,
-                                free_raw_data=False)
+        xgb_train = xgb.DMatrix(train_x,label=train_y)
 
-        lgb_test = lgb.Dataset(valid_x,
-                               label=valid_y,
-#                               categorical_feature = cat_features,
-                               free_raw_data=False)
+        xgb_test = xgb.DMatrix(valid_x,label=valid_y)
 
-        # change seed by folds
-        params['seed'] = 42*(n_fold+1)
-        params['bagging_seed'] = 42*(n_fold+1)
-        params['drop_seed'] = 42*(n_fold+1)
-
+        # change seed by fold
+        params['random_state'] = 42*(n_fold+1)
 
         # train
-        clf = lgb.train(
+        clf = xgb.train(
                         params,
-                        lgb_train,
-                        feval = lgb_amex_metric,
-                        valid_sets=[lgb_train, lgb_test],
-                        valid_names=['train', 'test'],
+                        xgb_train,
                         num_boost_round=10000,
+                        evals=[(xgb_train,'train'),(xgb_test,'test')],
                         early_stopping_rounds= 200,
-                        verbose_eval=100,
+                        verbose_eval=100
                         )
 
         # save model
         clf.save_model(f'{model_path}{n_fold}.txt')
 
         # save predictions
-        oof_preds[valid_idx] = clf.predict(valid_x,num_iteration=clf.best_iteration)
-        sub_preds += clf.predict(test_df[feats],num_iteration=clf.best_iteration) / folds.n_splits
+        oof_preds[valid_idx] = clf.predict(xgb_test)
+        sub_preds += clf.predict(test_df_dmtrx) / folds.n_splits
 
         # save importances
-        fold_importance_df = pd.DataFrame()
-        fold_importance_df['feature'] = feats
-        fold_importance_df['importance'] = np.log1p(clf.feature_importance(importance_type='gain', iteration=clf.best_iteration))
+        fold_importance_df = pd.DataFrame.from_dict(clf.get_score(importance_type='gain'), orient='index', columns=['importance'])
+        fold_importance_df["feature"] = fold_importance_df.index.tolist()
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
