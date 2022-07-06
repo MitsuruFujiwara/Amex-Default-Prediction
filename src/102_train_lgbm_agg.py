@@ -82,13 +82,19 @@ def main():
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
-                                categorical_feature = cat_features,
+#                                categorical_feature = cat_features,
                                 free_raw_data=False)
 
         lgb_test = lgb.Dataset(valid_x,
                                label=valid_y,
-                               categorical_feature = cat_features,
+#                               categorical_feature = cat_features,
                                free_raw_data=False)
+
+        # change seed by folds
+        params['seed'] = 42*(n_fold+1)
+        params['bagging_seed'] = 42*(n_fold+1)
+        params['drop_seed'] = 42*(n_fold+1)
+
 
         # train
         clf = lgb.train(
@@ -100,9 +106,6 @@ def main():
                         num_boost_round=10000,
                         early_stopping_rounds= 200,
                         verbose_eval=100,
-                        seed=42*(n_fold+1),
-                        bagging_seed=42*(n_fold+1),
-                        drop_seed=42*(n_fold+1)
                         )
 
         # save model
