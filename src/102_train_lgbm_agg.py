@@ -103,7 +103,7 @@ def main():
                         feval = lgb_amex_metric,
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
-                        num_boost_round=10000,
+                        num_boost_round=15000,
                         early_stopping_rounds= 200,
                         verbose_eval=100,
                         )
