@@ -34,8 +34,8 @@ imp_path_csv = '../imp/feature_importance_cb_agg.csv'
 
 params ={
         'loss_function': 'Logloss',
-        'custom_metric': CustomMetric,
-        'eval_metric': CustomMetric,
+        'custom_metric': 'Logloss',
+        'eval_metric': 'Logloss',
         'learning_rate': 0.01,
         'early_stopping_rounds':200,
         'verbose_eval':100,

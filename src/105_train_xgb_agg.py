@@ -41,7 +41,7 @@ params = {
           'min_child_weight': 8,
           'eval_metric':'logloss',
           'objective':'binary:logistic',
-          'random_state':47
+          'booster': 'dart'
         }
 
 def main():
@@ -84,6 +84,9 @@ def main():
         xgb_train = xgb.DMatrix(train_x,label=train_y)
 
         xgb_test = xgb.DMatrix(valid_x,label=valid_y)
+
+        # change seed by fold
+        params['random_state'] = 42*(n_fold+1)
 
         # train
         clf = xgb.train(
