@@ -10,8 +10,9 @@ import xgboost as xgb
 from glob import glob
 from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
+from xgboost.callback import EarlyStopping
 
-from utils import save_imp, amex_metric_mod, line_notify
+from utils import save_imp, amex_metric_mod, xgb_amex, line_notify
 from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
@@ -34,14 +35,14 @@ imp_path_csv = '../imp/feature_importance_xgb_agg.csv'
 
 params = { 
           'max_depth':7,
-          'learning_rate':0.03,
+          'learning_rate':0.01,
           'subsample':0.88,
           'colsample_bytree':0.5,
           'gamma': 1.5,
           'min_child_weight': 8,
+          'lambda':70,
           'eval_metric':'logloss',
           'objective':'binary:logistic',
-          'booster': 'dart'
         }
 
 def main():
@@ -60,7 +61,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=46)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -88,13 +89,21 @@ def main():
         # change seed by fold
         params['random_state'] = 42*(n_fold+1)
 
+        # specify early stopping
+        early_stop = EarlyStopping(rounds=200,
+                                   metric_name='amex',
+                                   data_name='test',
+                                   maximize=True)
+
         # train
         clf = xgb.train(
                         params,
                         xgb_train,
                         num_boost_round=10000,
                         evals=[(xgb_train,'train'),(xgb_test,'test')],
-                        early_stopping_rounds= 200,
+                        feval=xgb_amex,
+                        maximize=True,
+                        callbacks=[early_stop],
                         verbose_eval=100
                         )
 

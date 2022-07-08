@@ -22,8 +22,8 @@ def get_features(df):
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
 
     # aggregate
-    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'sum', 'last'])
-    df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'nunique'])
+    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'sum', 'last', 'first'])
+    df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'first', 'nunique'])
 
     # change column names
     df_num_agg.columns = ['_'.join(x) for x in df_num_agg.columns]
@@ -94,7 +94,7 @@ def main():
 
     print('load submission file...')
     sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    sub_df = sub_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last'])
+    sub_df = sub_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
     sub_df.columns = [f'pred_no_agg_{x}' for x in sub_df.columns]
@@ -106,7 +106,7 @@ def main():
 
     print('load oof file...')
     oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    oof_df = oof_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last'])
+    oof_df = oof_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
     oof_df.columns = [f'pred_no_agg_{x}' for x in oof_df.columns]

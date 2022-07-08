@@ -59,7 +59,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=46)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -103,7 +103,7 @@ def main():
                         feval = lgb_amex_metric,
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
-                        num_boost_round=15000,
+                        num_boost_round=9500,
                         early_stopping_rounds= 200,
                         verbose_eval=100,
                         )

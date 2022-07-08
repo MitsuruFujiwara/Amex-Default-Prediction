@@ -58,7 +58,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=46)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])

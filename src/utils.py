@@ -175,3 +175,6 @@ class CustomMetric(object):
    def get_final_error(self, error, weight): return error
    def is_max_optimal(self): return True
    def evaluate(self, approxes, target, weight): return amex_metric(np.array(target), approxes[0]), 1.0
+
+def xgb_amex(y_pred, y_true):
+    return 'amex', amex_metric_np(y_pred,y_true.get_label())
