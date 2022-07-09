@@ -21,7 +21,7 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/105_xgb_agg.json'))
+configs = json.load(open('../configs/102_lgbm_agg.json'))
 
 feats_path = '../feats/f002_*.feather'
 

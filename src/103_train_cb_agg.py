@@ -1,7 +1,7 @@
 
+import catboost as cb
 import gc
 import json
-import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import sys
@@ -12,41 +12,35 @@ from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
 from utils import save_imp, amex_metric_mod, line_notify
-from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import CustomMetric, NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
-# Train LightGBM
+# Train CatBoost
 #==============================================================================
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/103_lgbm_agg_simple.json'))
+configs = json.load(open('../configs/102_lgbm_agg.json'))
 
-feats_path = '../feats/f003_*.feather'
+feats_path = '../feats/f002_*.feather'
 
-sub_path = '../output/submission_lgbm_agg_simple.csv'
-oof_path = '../output/oof_lgbm_agg_simple.csv'
+sub_path = '../output/submission_cb_agg.csv'
+oof_path = '../output/oof_cb_agg.csv'
 
-model_path = '../models/lgbm_agg_simple_'
+model_path = '../models/cb_agg_'
 
-imp_path_png = '../imp/lgbm_importances_agg_simple.png'
-imp_path_csv = '../imp/feature_importance_lgbm_agg_simple.csv'
+imp_path_png = '../imp/cb_importances_agg.png'
+imp_path_csv = '../imp/feature_importance_cb_agg.csv'
 
-params = configs['params']
-
-#params['device'] = 'gpu'
-params['task'] = 'train'
-params['boosting'] = 'gbdt'
-params['objective'] = 'binary'
-params['metric'] = 'binary_logloss'
-params['learning_rate'] = 0.05
-params['reg_alpha'] = 0.0
-params['min_split_gain'] = 0.0
-params['verbose'] = -1
-#params['num_threads'] = -1
-params['seed'] = 47
-params['bagging_seed'] = 47
-params['drop_seed'] = 47
+params ={
+        'loss_function': 'Logloss',
+        'custom_metric': 'Logloss',
+        'eval_metric': 'Logloss',
+        'learning_rate': 0.01,
+        'early_stopping_rounds':200,
+        'verbose_eval':100,
+        'train_dir':'../output/catboost_info',
+        }
 
 def main():
     # load feathers
@@ -64,7 +58,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=NUM_FOLDS, shuffle=True, random_state=47)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -82,36 +76,32 @@ def main():
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
         # set data structure
-        lgb_train = lgb.Dataset(train_x,
-                                label=train_y,
-                                free_raw_data=False)
+        cb_train = cb.Pool(train_x,label=train_y)
 
-        lgb_test = lgb.Dataset(valid_x,
-                               label=valid_y,
-                               free_raw_data=False)
+        cb_test = cb.Pool(valid_x,label=valid_y)
+
+        # change seed by folds
+        params['random_seed'] = 42*(n_fold+1)
 
         # train
-        clf = lgb.train(
-                        params,
-                        lgb_train,
-                        valid_sets=[lgb_train, lgb_test],
-                        valid_names=['train', 'test'],
-                        num_boost_round=10000,
-                        early_stopping_rounds= 200,
-                        verbose_eval=100
-                        )
+        clf = cb.train(
+                       cb_train,
+                       params,
+                       num_boost_round=10000,
+                       eval_set=cb_test
+                       )
 
         # save model
         clf.save_model(f'{model_path}{n_fold}.txt')
 
         # save predictions
-        oof_preds[valid_idx] = clf.predict(valid_x,num_iteration=clf.best_iteration)
-        sub_preds += clf.predict(test_df[feats],num_iteration=clf.best_iteration) / folds.n_splits
+        oof_preds[valid_idx] = clf.predict(valid_x)
+        sub_preds += clf.predict(test_df[feats]) / folds.n_splits
 
         # save importances
         fold_importance_df = pd.DataFrame()
         fold_importance_df['feature'] = feats
-        fold_importance_df['importance'] = np.log1p(clf.feature_importance(importance_type='gain', iteration=clf.best_iteration))
+        fold_importance_df['importance'] = np.log1p(clf.feature_importances_)
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
