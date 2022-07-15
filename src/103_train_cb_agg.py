@@ -20,9 +20,9 @@ from utils import CustomMetric, NUM_FOLDS, FEATS_EXCLUDED
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/102_lgbm_agg.json'))
+configs = json.load(open('../configs/003_all_features_agg_last.json'))
 
-feats_path = '../feats/f002_*.feather'
+feats_path = '../feats/f003_*.feather'
 
 sub_path = '../output/submission_cb_agg.csv'
 oof_path = '../output/oof_cb_agg.csv'
