@@ -7,3 +7,4 @@
 /feats/*.pkl
 *.xlsx
 *.ipynb
+.DS_STORE
