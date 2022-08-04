@@ -21,6 +21,14 @@ def get_features(df):
     # numeric columns
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
 
+    # diff features
+    """
+    print('add diff features...')
+    for c in tqdm(NUM_COLS):
+        df[f'{c}_diff'] = df[['customer_ID',c]].groupby('customer_ID').diff(1)
+        NUM_COLS.append(f'{c}_diff')
+    """
+
     # aggregate
     df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'sum', 'last', 'first'])
     df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'first', 'nunique'])
@@ -94,7 +102,10 @@ def main():
 
     print('load submission file...')
     sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    sub_df = sub_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
+
+    print('add diff features...')
+    sub_df['pred_no_agg_diff'] = sub_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
+    sub_df = sub_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
     sub_df.columns = [f'pred_no_agg_{x}' for x in sub_df.columns]
@@ -106,7 +117,11 @@ def main():
 
     print('load oof file...')
     oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    oof_df = oof_df.groupby("customer_ID")['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
+
+    print('add diff features...')
+    oof_df['pred_no_agg_diff'] = oof_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
+
+    oof_df = oof_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
     oof_df.columns = [f'pred_no_agg_{x}' for x in oof_df.columns]
