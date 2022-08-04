@@ -35,6 +35,15 @@ def main():
     oof_cb = pd.read_csv(oof_path_cb)
     oof_xgb = pd.read_csv(oof_path_xgb)
 
+    # to rank
+    sub_lgbm['prediction'] = sub_lgbm['prediction'].rank()
+    sub_cb['prediction'] = sub_cb['prediction'].rank()
+    sub_xgb['prediction'] = sub_xgb['prediction'].rank()
+
+    oof_lgbm['prediction'] = oof_lgbm['prediction'].rank()
+    oof_cb['prediction'] = oof_cb['prediction'].rank()
+    oof_xgb['prediction'] = oof_xgb['prediction'].rank()
+
     # rename columns
     oof_lgbm.rename(columns={'prediction': 'prediction_lgbm'},inplace=True)
     oof_cb.rename(columns={'prediction': 'prediction_cb'},inplace=True)
