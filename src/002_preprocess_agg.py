@@ -108,7 +108,7 @@ def main():
     sub_df = sub_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
-    sub_df.columns = [f'pred_no_agg_{x}' for x in sub_df.columns]
+    sub_df.columns = ['_'.join(x) for x in sub_df.columns]
 
     test_df = test_df.merge(sub_df,how='left',on='customer_ID')
 
@@ -124,7 +124,7 @@ def main():
     oof_df = oof_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
-    oof_df.columns = [f'pred_no_agg_{x}' for x in oof_df.columns]
+    oof_df.columns = ['_'.join(x) for x in oof_df.columns]
 
     train_df = train_df.merge(oof_df,how='left',on='customer_ID')
 

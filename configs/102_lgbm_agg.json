@@ -1433,6 +1433,12 @@
         "pred_no_agg_max",
         "pred_no_agg_last",
         "pred_no_agg_first",
+        "pred_no_agg_diff_mean",
+        "pred_no_agg_diff_std",
+        "pred_no_agg_diff_min",
+        "pred_no_agg_diff_max",
+        "pred_no_agg_diff_last",
+        "pred_no_agg_diff_first",
         "prediction"
     ],
     "params": {
