@@ -33,11 +33,14 @@ imp_path_png = '../imp/cb_importances_agg.png'
 imp_path_csv = '../imp/feature_importance_cb_agg.csv'
 
 params ={
+        'max_depth': 7,    
+        'od_type': 'Iter',        
+        'l2_leaf_reg': 70,    
+        'random_seed': 42,                    
         'loss_function': 'Logloss',
-#        'custom_metric': 'Logloss',
         'eval_metric': AmexCatboostMetric(),
-        'learning_rate': 0.01,
-        'early_stopping_rounds':200,
+        'learning_rate': 0.03,
+        'early_stopping_rounds':1500,
         'verbose_eval':100,
         'train_dir':'../output/catboost_info',
         }
@@ -87,7 +90,7 @@ def main():
         clf = cb.train(
                        cb_train,
                        params,
-                       num_boost_round=10000,
+                       num_boost_round=20500,
                        eval_set=cb_test
                        )
 
