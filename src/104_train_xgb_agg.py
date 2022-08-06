@@ -35,7 +35,7 @@ imp_path_csv = '../imp/feature_importance_xgb_agg.csv'
 
 params = { 
           'max_depth':7,
-          'learning_rate':0.01,
+          'learning_rate':0.03,
           'subsample':0.88,
           'colsample_bytree':0.5,
           'gamma': 1.5,

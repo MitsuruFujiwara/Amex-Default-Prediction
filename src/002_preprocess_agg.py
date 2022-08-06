@@ -35,8 +35,9 @@ def get_features(df):
     gc.collect()
 
     # aggregate
-    df_num_agg = df.groupby('customer_ID')[NUM_COLS+COLS_DIFF].agg(['mean', 'std', 'min', 'max', 'sum', 'last', 'first'])
-    df_cat_agg = df.groupby('customer_ID')[CAT_COLS].agg(['count', 'last', 'first', 'nunique'])
+    print('aggregate...')
+    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'sum', 'last', 'first'])
+    df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'first', 'nunique'])
 
     # change column names
     df_num_agg.columns = ['_'.join(x) for x in df_num_agg.columns]
@@ -48,10 +49,12 @@ def get_features(df):
     del df_num_agg, df_cat_agg
     gc.collect()
 
-    # diff between last & mean, last & firt
-    for c in NUM_COLS:
+    # add features
+    print('add features...')
+    for c in tqdm(NUM_COLS):
         df[f'{c}_last_mean_diff'] = df[f'{c}_last'] - df[f'{c}_mean']
         df[f'{c}_last_first_diff'] = df[f'{c}_last'] - df[f'{c}_first']
+        df[f'{c}_max_min_diff'] = df[f'{c}_max'] - df[f'{c}_min']
 
     return df
 
@@ -112,10 +115,13 @@ def main():
 
     print('load submission file...')
     sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    sub_df = sub_df.groupby('customer_ID')['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
+
+    print('add diff features...')
+    sub_df['pred_no_agg_diff'] = sub_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
+    sub_df = sub_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
-    sub_df.columns = [f'pred_no_agg_{x}' for x in sub_df.columns]
+    sub_df.columns = ['_'.join(x) for x in sub_df.columns]
 
     test_df = test_df.merge(sub_df,how='left',on='customer_ID')
 
@@ -124,10 +130,14 @@ def main():
 
     print('load oof file...')
     oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    oof_df = oof_df.groupby('customer_ID')['pred_no_agg'].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
+
+    print('add diff features...')
+    oof_df['pred_no_agg_diff'] = oof_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
+
+    oof_df = oof_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean', 'std', 'min', 'max', 'last', 'first'])
 
     # change column names
-    oof_df.columns = [f'pred_no_agg_{x}' for x in oof_df.columns]
+    oof_df.columns = ['_'.join(x) for x in oof_df.columns]
 
     train_df = train_df.merge(oof_df,how='left',on='customer_ID')
 

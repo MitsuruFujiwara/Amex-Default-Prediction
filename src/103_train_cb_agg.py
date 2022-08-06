@@ -12,7 +12,7 @@ from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
 from utils import save_imp, amex_metric_mod, line_notify
-from utils import CustomMetric, NUM_FOLDS, FEATS_EXCLUDED
+from utils import AmexCatboostMetric, NUM_FOLDS, FEATS_EXCLUDED
 
 #==============================================================================
 # Train CatBoost
@@ -20,9 +20,9 @@ from utils import CustomMetric, NUM_FOLDS, FEATS_EXCLUDED
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/003_all_features_agg_last.json'))
+configs = json.load(open('../configs/102_lgbm_agg.json'))
 
-feats_path = '../feats/f003_*.feather'
+feats_path = '../feats/f002_*.feather'
 
 sub_path = '../output/submission_cb_agg.csv'
 oof_path = '../output/oof_cb_agg.csv'
@@ -34,8 +34,8 @@ imp_path_csv = '../imp/feature_importance_cb_agg.csv'
 
 params ={
         'loss_function': 'Logloss',
-        'custom_metric': 'Logloss',
-        'eval_metric': 'Logloss',
+#        'custom_metric': 'Logloss',
+        'eval_metric': AmexCatboostMetric(),
         'learning_rate': 0.01,
         'early_stopping_rounds':200,
         'verbose_eval':100,
