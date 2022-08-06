@@ -171,7 +171,7 @@ def lgb_amex_metric(y_pred, y_true):
     return 'amex_metric', amex_metric(y_true, y_pred), True
 
 # custom metric for catboost
-class CustomMetric(object):
+class AmexCatboostMetric(object):
    def get_final_error(self, error, weight): return error
    def is_max_optimal(self): return True
    def evaluate(self, approxes, target, weight): return amex_metric(np.array(target), approxes[0]), 1.0
