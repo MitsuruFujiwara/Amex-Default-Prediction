@@ -21,15 +21,8 @@ def get_features(df):
     # numeric columns
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
 
-    # diff features
-    """
-    print('add diff features...')
-    for c in tqdm(NUM_COLS):
-        df[f'{c}_diff'] = df[['customer_ID',c]].groupby('customer_ID').diff(1)
-        NUM_COLS.append(f'{c}_diff')
-    """
-
     # aggregate
+    print('aggregate...')
     df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean', 'std', 'min', 'max', 'sum', 'last', 'first'])
     df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['count', 'last', 'first', 'nunique'])
 
@@ -42,6 +35,13 @@ def get_features(df):
 
     del df_num_agg, df_cat_agg
     gc.collect()
+
+    # add features
+    print('add features...')
+    for c in tqdm(NUM_COLS):
+        df[f'{c}_last_mean_diff'] = df[f'{c}_last'] - df[f'{c}_mean']
+        df[f'{c}_last_first_diff'] = df[f'{c}_last'] - df[f'{c}_first']
+        df[f'{c}_max_min_diff'] = df[f'{c}_max'] - df[f'{c}_min']
 
     return df
 
