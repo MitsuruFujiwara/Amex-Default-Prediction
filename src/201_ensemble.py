@@ -35,6 +35,15 @@ def main():
     oof_cb = pd.read_csv(oof_path_cb)
     oof_xgb = pd.read_csv(oof_path_xgb)
 
+    # to rank
+    sub_lgbm['prediction'] = sub_lgbm['prediction'].rank() / len(sub_lgbm)
+    sub_cb['prediction'] = sub_cb['prediction'].rank() / len(sub_cb)
+    sub_xgb['prediction'] = sub_xgb['prediction'].rank() / len(sub_xgb)
+
+    oof_lgbm['prediction'] = oof_lgbm['prediction'].rank() / len(oof_lgbm)
+    oof_cb['prediction'] = oof_cb['prediction'].rank() / len(oof_cb)
+    oof_xgb['prediction'] = oof_xgb['prediction'].rank() / len(oof_xgb)
+
     # rename columns
     oof_lgbm.rename(columns={'prediction': 'prediction_lgbm'},inplace=True)
     oof_cb.rename(columns={'prediction': 'prediction_cb'},inplace=True)
@@ -52,11 +61,13 @@ def main():
     reg = Ridge(alpha=1.0,fit_intercept=False,random_state=47)
     reg.fit(oof[['prediction_lgbm','prediction_cb','prediction_xgb']],oof['target'])
 
-    print('weights: {}'.format(reg.coef_))
+    # get weights
+    w = reg.coef_ / sum(reg.coef_)
+    print('weights: {}'.format(w))
 
     # calc prediction
-    sub['prediction'] += reg.coef_[0]*sub_lgbm['prediction']+reg.coef_[1]*sub_cb['prediction']+reg.coef_[2]*sub_xgb['prediction']
-    oof['prediction'] = reg.coef_[0]*oof['prediction_lgbm']+reg.coef_[1]*oof['prediction_cb']+reg.coef_[2]*oof['prediction_xgb']
+    sub['prediction'] += w[0]*sub_lgbm['prediction']+w[1]*sub_cb['prediction']+w[2]*sub_xgb['prediction']
+    oof['prediction'] = w[0]*oof['prediction_lgbm']+w[1]*oof['prediction_cb']+w[2]*oof['prediction_xgb']
 
     # save csv
     sub[['customer_ID','prediction']].to_csv(sub_path, index=False)
