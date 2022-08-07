@@ -144,7 +144,7 @@ def main():
     gc.collect()
 
     # save as feather
-    to_feature(df, '../feats/f002')
+    to_feature(df, '../feats/f006')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}
