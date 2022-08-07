@@ -11,7 +11,7 @@ from utils import to_json, to_feature, line_notify
 from utils import CAT_COLS
 
 #==============================================================================
-# preprocess aggregation
+# preprocess aggregation last only
 #==============================================================================
 
 # get features

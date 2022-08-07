@@ -11,7 +11,7 @@ from utils import to_json, to_feature, line_notify
 from utils import CAT_COLS
 
 #==============================================================================
-# preprocess aggregation (mean only)
+# preprocess aggregation mean only
 #==============================================================================
 
 # get features
@@ -21,7 +21,21 @@ def get_features(df):
     # numeric columns
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
 
+    # add diff features
+    df_diff = df.groupby('customer_ID')[NUM_COLS].agg(['diff'])
+
+    # change column names
+    COLS_DIFF = [f'{x}_diff' for x in df_num_agg.columns]
+    df_diff.columns = COLS_DIFF
+
+    # merge diff
+    df = df.merge(df_diff,on='customer_ID',how='left')
+
+    del df_diff
+    gc.collect()
+
     # aggregate
+    print('aggregate...')
     df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean'])
     df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['mean'])
 
@@ -94,10 +108,13 @@ def main():
 
     print('load submission file...')
     sub_df = pd.read_csv('../output/submission_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    sub_df = sub_df.groupby("customer_ID")['pred_no_agg'].agg(['mean'])
+
+    print('add diff features...')
+    sub_df['pred_no_agg_diff'] = sub_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
+    sub_df = sub_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean'])
 
     # change column names
-    sub_df.columns = [f'pred_no_agg_{x}' for x in sub_df.columns]
+    sub_df.columns = ['_'.join(x) for x in sub_df.columns]
 
     test_df = test_df.merge(sub_df,how='left',on='customer_ID')
 
@@ -106,10 +123,14 @@ def main():
 
     print('load oof file...')
     oof_df = pd.read_csv('../output/oof_lgbm_no_agg.csv',dtype={'pred_no_agg':'float16'})
-    oof_df = oof_df.groupby("customer_ID")['pred_no_agg'].agg(['mean'])
+
+    print('add diff features...')
+    oof_df['pred_no_agg_diff'] = oof_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
+
+    oof_df = oof_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean'])
 
     # change column names
-    oof_df.columns = [f'pred_no_agg_{x}' for x in oof_df.columns]
+    oof_df.columns = ['_'.join(x) for x in oof_df.columns]
 
     train_df = train_df.merge(oof_df,how='left',on='customer_ID')
 
@@ -123,7 +144,7 @@ def main():
     gc.collect()
 
     # save as feather
-    to_feature(df, '../feats/f004')
+    to_feature(df, '../feats/f002')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}
