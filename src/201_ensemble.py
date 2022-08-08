@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import sys
 
-from sklearn.linear_model import Ridge
-
 from utils import amex_metric_mod, line_notify
 
 #==============================================================================
@@ -57,12 +55,11 @@ def main():
     del oof_lgbm, oof_cb, oof_xgb
     gc.collect()
 
-    # ridge regression
-    reg = Ridge(alpha=1.0,fit_intercept=False,random_state=47)
-    reg.fit(oof[['prediction_lgbm','prediction_cb','prediction_xgb']],oof['target'])
+    # check correlation
+    print(np.corrcoef([sub_lgbm['prediction'],sub_cb['prediction'],sub_xgb['prediction']]))
 
-    # get weights
-    w = reg.coef_ / sum(reg.coef_)
+    # weights
+    w = [0.5,0.1,0.4]
     print('weights: {}'.format(w))
 
     # calc prediction
