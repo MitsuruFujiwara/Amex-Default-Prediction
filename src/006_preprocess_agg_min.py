@@ -21,19 +21,6 @@ def get_features(df):
     # numeric columns
     NUM_COLS = [c for c in df.columns if c not in CAT_COLS+['customer_ID','S_2']]
 
-    # add diff features
-    df_diff = df.groupby('customer_ID')[NUM_COLS].agg(['diff'])
-
-    # change column names
-    COLS_DIFF = [f'{x}_diff' for x in df_num_agg.columns]
-    df_diff.columns = COLS_DIFF
-
-    # merge diff
-    df = df.merge(df_diff,on='customer_ID',how='left')
-
-    del df_diff
-    gc.collect()
-
     # aggregate
     print('aggregate...')
     df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['min'])
