@@ -45,9 +45,9 @@ params['reg_alpha'] = 0.0
 params['min_split_gain'] = 0.0
 params['verbose'] = -1
 #params['num_threads'] = -1
-params['seed'] = 47
-params['bagging_seed'] = 47
-params['drop_seed'] = 47
+params['seed'] = 42
+params['bagging_seed'] = 42
+params['drop_seed'] = 42
 
 def main():
     # load feathers
@@ -65,7 +65,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedGroupKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=46)
+    folds = StratifiedGroupKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
