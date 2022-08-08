@@ -90,7 +90,7 @@ def main():
         params['random_state'] = 42*(n_fold+1)
 
         # specify early stopping
-        early_stop = EarlyStopping(rounds=1500,
+        early_stop = EarlyStopping(rounds=200,
                                    metric_name='amex',
                                    data_name='test',
                                    maximize=True)
@@ -99,7 +99,7 @@ def main():
         clf = xgb.train(
                         params,
                         xgb_train,
-                        num_boost_round=20500,
+                        num_boost_round=10000,
                         evals=[(xgb_train,'train'),(xgb_test,'test')],
                         feval=xgb_amex,
                         maximize=True,
