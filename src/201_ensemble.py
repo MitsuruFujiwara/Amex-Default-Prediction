@@ -14,6 +14,7 @@ sub_path = '../output/submission_ensemble.csv'
 sub_path_lgbm = '../output/submission_lgbm_agg.csv'
 sub_path_cb = '../output/submission_cb_agg.csv'
 sub_path_xgb = '../output/submission_xgb_agg.csv'
+sub_path_thedevastator = '../output/submission_thedevastator.csv'
 
 oof_path = '../output/oof_ensemble.csv'
 oof_path_lgbm = '../output/oof_lgbm_agg.csv'
@@ -28,6 +29,7 @@ def main():
     sub_lgbm = pd.read_csv(sub_path_lgbm)
     sub_cb = pd.read_csv(sub_path_cb)
     sub_xgb = pd.read_csv(sub_path_xgb)
+    sub_thedevastator = pd.read_csv(sub_path_thedevastator)
 
     oof_lgbm = pd.read_csv(oof_path_lgbm)
     oof_cb = pd.read_csv(oof_path_cb)
@@ -37,6 +39,7 @@ def main():
     sub_lgbm['prediction'] = sub_lgbm['prediction'].rank() / len(sub_lgbm)
     sub_cb['prediction'] = sub_cb['prediction'].rank() / len(sub_cb)
     sub_xgb['prediction'] = sub_xgb['prediction'].rank() / len(sub_xgb)
+    sub_thedevastator['prediction'] = sub_thedevastator['prediction'].rank() / len(sub_thedevastator)
 
     oof_lgbm['prediction'] = oof_lgbm['prediction'].rank() / len(oof_lgbm)
     oof_cb['prediction'] = oof_cb['prediction'].rank() / len(oof_cb)
@@ -65,6 +68,10 @@ def main():
     # calc prediction
     sub['prediction'] += w[0]*sub_lgbm['prediction']+w[1]*sub_cb['prediction']+w[2]*sub_xgb['prediction']
     oof['prediction'] = w[0]*oof['prediction_lgbm']+w[1]*oof['prediction_cb']+w[2]*oof['prediction_xgb']
+
+    # add thedevastator
+    sub['prediction'] /= 2
+    sub['prediction'] += 0.5 * sub_thedevastator['prediction']
 
     # save csv
     sub[['customer_ID','prediction']].to_csv(sub_path, index=False)
