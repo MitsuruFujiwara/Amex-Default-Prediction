@@ -39,9 +39,9 @@ def get_features(df):
     # add features
     print('add features...')
     for c in tqdm(NUM_COLS):
-        df[f'{c}_last_mean_diff'] = df[f'{c}_last'] - df[f'{c}_mean']
-        df[f'{c}_last_first_diff'] = df[f'{c}_last'] - df[f'{c}_first']
-        df[f'{c}_max_min_diff'] = df[f'{c}_max'] - df[f'{c}_min']
+        df[f'{c}_last_mean_diff'] = df[f'{c}_last'].copy() - df[f'{c}_mean'].copy()
+        df[f'{c}_last_first_diff'] = df[f'{c}_last'].copy() - df[f'{c}_first'].copy()
+        df[f'{c}_max_min_diff'] = df[f'{c}_max'].copy() - df[f'{c}_min'].copy()
 
     return df
 
@@ -61,28 +61,28 @@ def main():
     test_df['S_2'] = pd.to_datetime(test_df['S_2'])
 
     # datetime features
-    train_df['day'] = train_df['S_2'].dt.day
-    train_df['month'] = train_df['S_2'].dt.month
-    train_df['year'] = train_df['S_2'].dt.year
-    train_df['seasonality_m'] = np.cos(np.pi*(train_df['S_2'].dt.day/31*2-1))
-    train_df['seasonality_y'] = np.cos(np.pi*(train_df['S_2'].dt.dayofyear/366*2-1))
+    train_df['day'] = train_df['S_2'].copy().dt.day
+    train_df['month'] = train_df['S_2'].copy().dt.month
+    train_df['year'] = train_df['S_2'].copy().dt.year
+    train_df['seasonality_m'] = np.cos(np.pi*(train_df['S_2'].copy().dt.day/31*2-1))
+    train_df['seasonality_y'] = np.cos(np.pi*(train_df['S_2'].copy().dt.dayofyear/366*2-1))
 
-    test_df['day'] = test_df['S_2'].dt.day
-    test_df['month'] = test_df['S_2'].dt.month
-    test_df['year'] = test_df['S_2'].dt.year
-    test_df['seasonality_m'] = np.cos(np.pi*(test_df['S_2'].dt.day/31*2-1))
-    test_df['seasonality_y'] = np.cos(np.pi*(test_df['S_2'].dt.dayofyear/366*2-1))
+    test_df['day'] = test_df['S_2'].copy().dt.day
+    test_df['month'] = test_df['S_2'].copy().dt.month
+    test_df['year'] = test_df['S_2'].copy().dt.year
+    test_df['seasonality_m'] = np.cos(np.pi*(test_df['S_2'].copy().dt.day/31*2-1))
+    test_df['seasonality_y'] = np.cos(np.pi*(test_df['S_2'].copy().dt.dayofyear/366*2-1))
 
     # days diff features
-    train_df['days_diff'] = train_df[['customer_ID','S_2']].groupby('customer_ID').diff()['S_2'].dt.days
-    test_df['days_diff'] = test_df[['customer_ID','S_2']].groupby('customer_ID').diff()['S_2'].dt.days
+    train_df['days_diff'] = train_df[['customer_ID','S_2']].copy().groupby('customer_ID').diff()['S_2'].dt.days
+    test_df['days_diff'] = test_df[['customer_ID','S_2']].copy().groupby('customer_ID').diff()['S_2'].dt.days
 
     # target encoding
     print('target encoding...')
     for c in tqdm(CAT_COLS+['day','month','year']):
         dict_target = train_df[[c,'target']].groupby(c).mean()['target']
-        train_df[f'{c}_te'] = train_df[c].map(dict_target)
-        test_df[f'{c}_te'] = test_df[c].map(dict_target)
+        train_df[f'{c}_te'] = train_df[c].copy().map(dict_target)
+        test_df[f'{c}_te'] = test_df[c].copy().map(dict_target)
 
     # drop unnecessary columns
     train_df.drop(['S_2','target'],axis=1,inplace=True)

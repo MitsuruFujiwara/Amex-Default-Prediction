@@ -213,6 +213,7 @@
         "D_68_mean",
         "is_test",
         "pred_no_agg_mean",
+        "pred_no_agg_diff_mean",
         "prediction"
     ]
 }

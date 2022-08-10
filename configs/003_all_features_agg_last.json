@@ -213,6 +213,7 @@
         "D_68_last",
         "is_test",
         "pred_no_agg_last",
+        "pred_no_agg_diff_last",
         "prediction"
     ]
 }
