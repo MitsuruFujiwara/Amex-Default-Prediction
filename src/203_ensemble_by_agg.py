@@ -196,8 +196,6 @@ def main():
 
     # ridge regression
     cols_pred = ['prediction_lgbm','prediction_cb','prediction_xgb',
-                 'prediction_cb_last',
-                 'prediction_cb_mean','prediction_xgb_mean',
                  'prediction_xgb_max',
                  ]
 
@@ -231,14 +229,12 @@ def main():
 
     # get weights
     bestSC = np.min(lls)
-    w = wghts[np.argmin(lls)]
+    w = wghts[np.argmin(lls)] # [0.50616136 0.28207105 0.15996356 0.05180403]
     print('\n Ensemble Score: {best_score:.7f}'.format(best_score=bestSC))
     print('weights: {}'.format(w))
 
     # calc prediction
     preds = [sub_lgbm, sub_cb, sub_xgb,
-             sub_cb_last,
-             sub_cb_mean, sub_xgb_mean,
              sub_xgb_max,
              ]
 
