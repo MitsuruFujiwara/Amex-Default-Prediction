@@ -7,7 +7,7 @@ import requests
 import seaborn as sns
 
 from tqdm import tqdm
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, mean_squared_error
 
 #==============================================================================
 # utils
@@ -178,3 +178,7 @@ class AmexCatboostMetric(object):
 
 def xgb_amex(y_pred, y_true):
     return 'amex', amex_metric_np(y_pred,y_true.get_label())
+
+# rmse
+def rmse(y_true, y_pred):
+    return np.sqrt(mean_squared_error(y_true, y_pred))
