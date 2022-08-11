@@ -25,11 +25,14 @@ configs = json.load(open('../configs/102_lgbm_agg.json'))
 feats_path = '../feats/f002_*.feather'
 
 params ={
+        'max_depth': 7,    
+        'od_type': 'Iter',        
+        'l2_leaf_reg': 70,    
+        'random_seed': 42,                    
         'loss_function': 'Logloss',
-#        'custom_metric': 'Logloss',
         'eval_metric': AmexCatboostMetric(),
-        'learning_rate': 0.01,
-        'early_stopping_rounds':200,
+        'learning_rate': 0.03,
+        'early_stopping_rounds':1500,
         'verbose_eval':100,
         'train_dir':'../output/catboost_info',
         }
@@ -88,7 +91,7 @@ def main(seed):
         clf = cb.train(
                        cb_train,
                        params,
-                       num_boost_round=10000,
+                       num_boost_round=20500,
                        eval_set=cb_test
                        )
 
