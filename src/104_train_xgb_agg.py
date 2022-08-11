@@ -25,14 +25,6 @@ configs = json.load(open('../configs/102_lgbm_agg.json'))
 
 feats_path = '../feats/f002_*.feather'
 
-sub_path = '../output/submission_xgb_agg.csv'
-oof_path = '../output/oof_xgb_agg.csv'
-
-model_path = '../models/xgb_agg_'
-
-imp_path_png = '../imp/xgb_importances_agg.png'
-imp_path_csv = '../imp/feature_importance_xgb_agg.csv'
-
 params = { 
           'max_depth':7,
           'learning_rate':0.03,
@@ -45,7 +37,16 @@ params = {
           'objective':'binary:logistic',
         }
 
-def main():
+def main(seed):
+
+    sub_path = f'../output/submission_xgb_agg_{seed}.csv'
+    oof_path = f'../output/oof_xgb_agg_{seed}.csv'
+
+    model_path = f'../models/xgb_agg_{seed}_'
+
+    imp_path_png = f'../imp/xgb_importances_agg_{seed}.png'
+    imp_path_csv = f'../imp/feature_importance_xgb_agg_{seed}.csv'
+
     # load feathers
     files = sorted(glob(feats_path))
     df = pd.concat([pd.read_feather(f) for f in tqdm(files)], axis=1)
@@ -61,7 +62,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=seed)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -87,7 +88,7 @@ def main():
         xgb_test = xgb.DMatrix(valid_x,label=valid_y)
 
         # change seed by fold
-        params['random_state'] = 42*(n_fold+1)
+        params['random_state'] = seed*(n_fold+1)
 
         # specify early stopping
         early_stop = EarlyStopping(rounds=200,
@@ -146,4 +147,5 @@ def main():
     line_notify(f'{sys.argv[0]} done.')
 
 if __name__ == '__main__':
-    main()
+    for seed in [42, 52, 62]:
+        main(seed)
