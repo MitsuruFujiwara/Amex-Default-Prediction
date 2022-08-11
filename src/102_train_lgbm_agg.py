@@ -20,6 +20,8 @@ from utils import NUM_FOLDS, FEATS_EXCLUDED, CAT_COLS
 
 warnings.filterwarnings('ignore')
 
+seed = int(sys.argv[1])
+
 configs = json.load(open('../configs/102_lgbm_agg.json'))
 
 feats_path = '../feats/f002_*.feather'
@@ -35,7 +37,7 @@ params['learning_rate'] = 0.01
 params['verbose'] = -1
 #params['num_threads'] = -1
 
-def main(seed):
+def main():
 
     sub_path = f'../output/submission_lgbm_agg_{seed}.csv'
     oof_path = f'../output/oof_lgbm_agg_{seed}.csv'
@@ -104,7 +106,7 @@ def main(seed):
                         feval = lgb_amex_metric,
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
-                        num_boost_round=6600,
+                        num_boost_round=10500,
                         early_stopping_rounds= 200,
                         verbose_eval=100,
                         )
@@ -149,5 +151,4 @@ def main(seed):
     line_notify(f'{sys.argv[0]} done.')
 
 if __name__ == '__main__':
-    for seed in [42, 52, 62]:
-        main(seed)
+    main()
