@@ -33,7 +33,7 @@ def main():
     sub_adhithyasrinivasan['prediction'] = sub_adhithyasrinivasan['prediction'].rank() / len(sub_adhithyasrinivasan)
 
     # calc prediction
-    sub['prediction'] += 0.5*sub_seed_avg['prediction']+0.5*sub_adhithyasrinivasan['prediction']
+    sub['prediction'] += 0.45*sub_seed_avg['prediction']+0.55*sub_adhithyasrinivasan['prediction']
 
     # to rank
     sub['prediction'] = sub['prediction'].rank() / len(sub)
