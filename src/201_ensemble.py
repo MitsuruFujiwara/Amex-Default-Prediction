@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import sys
 
-from sklearn.linear_model import Ridge
-
 from utils import amex_metric_mod, line_notify
 
 #==============================================================================
@@ -17,22 +15,8 @@ sub_path = '../output/submission_ensemble.csv'
 sub_path_lgbm = '../output/submission_lgbm_agg.csv'
 sub_path_cb = '../output/submission_cb_agg.csv'
 sub_path_xgb = '../output/submission_xgb_agg.csv'
-
-sub_path_lgbm_last = '../output/submission_lgbm_agg_last.csv'
-sub_path_cb_last = '../output/submission_cb_agg_last.csv'
-sub_path_xgb_last = '../output/submission_xgb_agg_last.csv'
-
-sub_path_lgbm_mean = '../output/submission_lgbm_agg_mean.csv'
-sub_path_cb_mean = '../output/submission_cb_agg_mean.csv'
-sub_path_xgb_mean = '../output/submission_xgb_agg_mean.csv'
-
-sub_path_lgbm_max = '../output/submission_lgbm_agg_max.csv'
-sub_path_cb_max = '../output/submission_cb_agg_max.csv'
-sub_path_xgb_max = '../output/submission_xgb_agg_max.csv'
-
-sub_path_lgbm_min = '../output/submission_lgbm_agg_min.csv'
-sub_path_cb_min = '../output/submission_cb_agg_min.csv'
-sub_path_xgb_min = '../output/submission_xgb_agg_min.csv'
+sub_path_thedevastator = '../output/submission_thedevastator.csv'
+sub_path_zb1373 = '../output/submission_zb1373.csv'
 
 oof_path = '../output/oof_ensemble.csv'
 
@@ -64,22 +48,8 @@ def main():
     sub_lgbm = pd.read_csv(sub_path_lgbm)
     sub_cb = pd.read_csv(sub_path_cb)
     sub_xgb = pd.read_csv(sub_path_xgb)
-
-    sub_lgbm_last = pd.read_csv(sub_path_lgbm_last)
-    sub_cb_last = pd.read_csv(sub_path_cb_last)
-    sub_xgb_last = pd.read_csv(sub_path_xgb_last)
-
-    sub_lgbm_mean = pd.read_csv(sub_path_lgbm_mean)
-    sub_cb_mean = pd.read_csv(sub_path_cb_mean)
-    sub_xgb_mean = pd.read_csv(sub_path_xgb_mean)
-
-    sub_lgbm_max = pd.read_csv(sub_path_lgbm_max)
-    sub_cb_max = pd.read_csv(sub_path_cb_max)
-    sub_xgb_max = pd.read_csv(sub_path_xgb_max)
-
-    sub_lgbm_min = pd.read_csv(sub_path_lgbm_min)
-    sub_cb_min = pd.read_csv(sub_path_cb_min)
-    sub_xgb_min = pd.read_csv(sub_path_xgb_min)
+    sub_thedevastator = pd.read_csv(sub_path_thedevastator)
+    sub_zb1373 = pd.read_csv(sub_path_zb1373)
 
     oof_lgbm = pd.read_csv(oof_path_lgbm)
     oof_cb = pd.read_csv(oof_path_cb)
@@ -105,22 +75,8 @@ def main():
     sub_lgbm['prediction'] = sub_lgbm['prediction'].rank() / len(sub_lgbm)
     sub_cb['prediction'] = sub_cb['prediction'].rank() / len(sub_cb)
     sub_xgb['prediction'] = sub_xgb['prediction'].rank() / len(sub_xgb)
-
-    sub_lgbm_last['prediction'] = sub_lgbm_last['prediction'].rank() / len(sub_lgbm_last)
-    sub_cb_last['prediction'] = sub_cb_last['prediction'].rank() / len(sub_cb_last)
-    sub_xgb_last['prediction'] = sub_xgb_last['prediction'].rank() / len(sub_xgb_last)
-
-    sub_lgbm_mean['prediction'] = sub_lgbm_mean['prediction'].rank() / len(sub_lgbm_mean)
-    sub_cb_mean['prediction'] = sub_cb_mean['prediction'].rank() / len(sub_cb_mean)
-    sub_xgb_mean['prediction'] = sub_xgb_mean['prediction'].rank() / len(sub_xgb_mean)
-
-    sub_lgbm_max['prediction'] = sub_lgbm_max['prediction'].rank() / len(sub_lgbm_max)
-    sub_cb_max['prediction'] = sub_cb_max['prediction'].rank() / len(sub_cb_max)
-    sub_xgb_max['prediction'] = sub_xgb_max['prediction'].rank() / len(sub_xgb_max)
-
-    sub_lgbm_min['prediction'] = sub_lgbm_min['prediction'].rank() / len(sub_lgbm_min)
-    sub_cb_min['prediction'] = sub_cb_min['prediction'].rank() / len(sub_cb_min)
-    sub_xgb_min['prediction'] = sub_xgb_min['prediction'].rank() / len(sub_xgb_min)
+    sub_thedevastator['prediction'] = sub_thedevastator['prediction'].rank() / len(sub_thedevastator)
+    sub_zb1373['prediction'] = sub_zb1373['prediction'].rank() / len(sub_zb1373)
 
     oof_lgbm['prediction'] = oof_lgbm['prediction'].rank() / len(oof_lgbm)
     oof_cb['prediction'] = oof_cb['prediction'].rank() / len(oof_cb)
@@ -191,29 +147,20 @@ def main():
     del oof_lgbm_min, oof_cb_min, oof_xgb_min
     gc.collect()
 
-    # ridge regression
-    cols_pred = ['prediction_lgbm','prediction_cb','prediction_xgb',
-                 'prediction_lgbm_last','prediction_cb_last','prediction_xgb_last',
-                 'prediction_lgbm_mean','prediction_cb_mean','prediction_xgb_mean',
-                 'prediction_lgbm_max','prediction_cb_max','prediction_xgb_max',
-                 'prediction_lgbm_min','prediction_cb_min','prediction_xgb_min']
-    reg = Ridge(alpha=1.0,fit_intercept=False,random_state=47)
-    reg.fit(oof[cols_pred],oof['target'])
+    # check correlation
+    print(np.corrcoef([sub_lgbm['prediction'],sub_cb['prediction'],sub_xgb['prediction']]))
 
-    # get weights
-    w = reg.coef_ / sum(reg.coef_)
+    # weights
+    w = [0.5,0.1,0.4]
     print('weights: {}'.format(w))
 
     # calc prediction
-    preds = [sub_lgbm, sub_cb, sub_xgb,
-             sub_lgbm_last, sub_cb_last, sub_xgb_last,
-             sub_lgbm_mean, sub_cb_mean, sub_xgb_mean,
-             sub_lgbm_max, sub_cb_max, sub_xgb_max,
-             sub_lgbm_min, sub_cb_min, sub_xgb_min]
-    oof['prediction'] = 0.0
-    for i, (p, c) in enumerate(zip(preds,cols_pred)):
-        sub['prediction'] += w[i]*p['prediction']
-        oof['prediction'] += w[i]*oof[c]
+    sub['prediction'] += w[0]*sub_lgbm['prediction']+w[1]*sub_cb['prediction']+w[2]*sub_xgb['prediction']
+    oof['prediction'] = w[0]*oof['prediction_lgbm']+w[1]*oof['prediction_cb']+w[2]*oof['prediction_xgb']
+
+    # add thedevastator
+    sub['prediction'] *= 0.4
+    sub['prediction'] += 0.6 * sub_zb1373['prediction']
 
     # save csv
     sub[['customer_ID','prediction']].to_csv(sub_path, index=False)
