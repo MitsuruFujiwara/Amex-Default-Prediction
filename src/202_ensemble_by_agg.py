@@ -180,10 +180,9 @@ def main():
 
     # ridge regression
     cols_pred = ['prediction_seed_avg',
-                 'prediction_lgbm_last','prediction_cb_last','prediction_xgb_last',
-                 'prediction_lgbm_mean','prediction_cb_mean','prediction_xgb_mean',
-                 'prediction_lgbm_max','prediction_cb_max','prediction_xgb_max',
-                 'prediction_lgbm_min','prediction_cb_min','prediction_xgb_min',
+                 'prediction_xgb_last',
+                 'prediction_xgb_mean',
+                 'prediction_lgbm_max',
                  ]
 
     # objective function for scipy optimize
@@ -216,16 +215,15 @@ def main():
 
     # get weights
     bestSC = np.min(lls)
-    w = wghts[np.argmin(lls)] # [0.50616136 0.28207105 0.15996356 0.05180403]
+    w = wghts[np.argmin(lls)] # [8.26472566e-01 1.41295664e-01 5.84757810e-04 3.16470122e-02]
     print('\n Ensemble Score: {best_score:.7f}'.format(best_score=bestSC))
     print('weights: {}'.format(w))
 
     # calc prediction
     preds = [sub_seed_avg,
-             sub_lgbm_last, sub_cb_last, sub_xgb_last,
-             sub_lgbm_mean, sub_cb_mean, sub_xgb_mean,
-             sub_lgbm_max, sub_cb_max, sub_xgb_max,
-             sub_lgbm_min, sub_cb_min, sub_xgb_min,
+             sub_xgb_last,
+             sub_xgb_mean,
+             sub_lgbm_max,
              ]
 
     oof['prediction'] = 0.0
