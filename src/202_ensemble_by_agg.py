@@ -15,9 +15,7 @@ from utils import amex_metric_mod, line_notify
 
 sub_path = '../output/submission_ensemble_by_agg.csv'
 
-sub_path_lgbm = '../output/submission_lgbm_agg.csv'
-sub_path_cb = '../output/submission_cb_agg.csv'
-sub_path_xgb = '../output/submission_xgb_agg.csv'
+sub_path_seed_avg = '../output/submission_ensemble_seed_avg.csv'
 
 sub_path_lgbm_last = '../output/submission_lgbm_agg_last.csv'
 sub_path_cb_last = '../output/submission_cb_agg_last.csv'
@@ -35,11 +33,9 @@ sub_path_lgbm_min = '../output/submission_lgbm_agg_min.csv'
 sub_path_cb_min = '../output/submission_cb_agg_min.csv'
 sub_path_xgb_min = '../output/submission_xgb_agg_min.csv'
 
-oof_path = '../output/oof_ensemble.csv'
+oof_path = '../output/oof_ensemble_by_agg.csv'
 
-oof_path_lgbm = '../output/oof_lgbm_agg.csv'
-oof_path_cb = '../output/oof_cb_agg.csv'
-oof_path_xgb = '../output/oof_xgb_agg.csv'
+oof_path_seed_avg = '../output/oof_ensemble_seed_avg.csv'
 
 oof_path_lgbm_last = '../output/oof_lgbm_agg_last.csv'
 oof_path_cb_last = '../output/oof_cb_agg_last.csv'
@@ -63,9 +59,7 @@ def main():
     oof = pd.read_csv('../input/train_labels.csv')
     sub = pd.read_csv('../input/sample_submission.csv')
 
-    sub_lgbm = pd.read_csv(sub_path_lgbm)
-    sub_cb = pd.read_csv(sub_path_cb)
-    sub_xgb = pd.read_csv(sub_path_xgb)
+    sub_seed_avg = pd.read_csv(sub_path_seed_avg)
 
     sub_lgbm_last = pd.read_csv(sub_path_lgbm_last)
     sub_cb_last = pd.read_csv(sub_path_cb_last)
@@ -83,9 +77,7 @@ def main():
     sub_cb_min = pd.read_csv(sub_path_cb_min)
     sub_xgb_min = pd.read_csv(sub_path_xgb_min)
 
-    oof_lgbm = pd.read_csv(oof_path_lgbm)
-    oof_cb = pd.read_csv(oof_path_cb)
-    oof_xgb = pd.read_csv(oof_path_xgb)
+    oof_seed_avg = pd.read_csv(oof_path_seed_avg)
 
     oof_lgbm_last = pd.read_csv(oof_path_lgbm_last)
     oof_cb_last = pd.read_csv(oof_path_cb_last)
@@ -105,9 +97,7 @@ def main():
 
     # to rank
     print('to rank...')
-    sub_lgbm['prediction'] = sub_lgbm['prediction'].rank() / len(sub_lgbm)
-    sub_cb['prediction'] = sub_cb['prediction'].rank() / len(sub_cb)
-    sub_xgb['prediction'] = sub_xgb['prediction'].rank() / len(sub_xgb)
+    sub_seed_avg['prediction'] = sub_seed_avg['prediction'].rank() / len(sub_seed_avg)
 
     sub_lgbm_last['prediction'] = sub_lgbm_last['prediction'].rank() / len(sub_lgbm_last)
     sub_cb_last['prediction'] = sub_cb_last['prediction'].rank() / len(sub_cb_last)
@@ -125,9 +115,7 @@ def main():
     sub_cb_min['prediction'] = sub_cb_min['prediction'].rank() / len(sub_cb_min)
     sub_xgb_min['prediction'] = sub_xgb_min['prediction'].rank() / len(sub_xgb_min)
 
-    oof_lgbm['prediction'] = oof_lgbm['prediction'].rank() / len(oof_lgbm)
-    oof_cb['prediction'] = oof_cb['prediction'].rank() / len(oof_cb)
-    oof_xgb['prediction'] = oof_xgb['prediction'].rank() / len(oof_xgb)
+    oof_seed_avg['prediction'] = oof_seed_avg['prediction'].rank() / len(oof_seed_avg)
 
     oof_lgbm_last['prediction'] = oof_lgbm_last['prediction'].rank() / len(oof_lgbm_last)
     oof_cb_last['prediction'] = oof_cb_last['prediction'].rank() / len(oof_cb_last)
@@ -146,9 +134,7 @@ def main():
     oof_xgb_min['prediction'] = oof_xgb_min['prediction'].rank() / len(oof_xgb_min)
 
     # rename columns
-    oof_lgbm.rename(columns={'prediction': 'prediction_lgbm'},inplace=True)
-    oof_cb.rename(columns={'prediction': 'prediction_cb'},inplace=True)
-    oof_xgb.rename(columns={'prediction': 'prediction_xgb'},inplace=True)
+    oof_seed_avg.rename(columns={'prediction': 'prediction_seed_avg'},inplace=True)
 
     oof_lgbm_last.rename(columns={'prediction': 'prediction_lgbm_last'},inplace=True)
     oof_cb_last.rename(columns={'prediction': 'prediction_cb_last'},inplace=True)
@@ -167,9 +153,7 @@ def main():
     oof_xgb_min.rename(columns={'prediction': 'prediction_xgb_min'},inplace=True)
 
     # merge oof
-    oof = oof.merge(oof_lgbm,on=['customer_ID','target'],how='left')
-    oof = oof.merge(oof_cb,on=['customer_ID','target'],how='left')
-    oof = oof.merge(oof_xgb,on=['customer_ID','target'],how='left')
+    oof = oof.merge(oof_seed_avg,on=['customer_ID','target'],how='left')
 
     oof = oof.merge(oof_lgbm_last,on=['customer_ID','target'],how='left')
     oof = oof.merge(oof_cb_last,on=['customer_ID','target'],how='left')
@@ -187,7 +171,7 @@ def main():
     oof = oof.merge(oof_cb_min,on=['customer_ID','target'],how='left')
     oof = oof.merge(oof_xgb_min,on=['customer_ID','target'],how='left')
 
-    del oof_lgbm, oof_cb, oof_xgb
+    del oof_seed_avg
     del oof_lgbm_last, oof_cb_last, oof_xgb_last
     del oof_lgbm_mean, oof_cb_mean, oof_xgb_mean
     del oof_lgbm_max, oof_cb_max, oof_xgb_max
@@ -195,8 +179,11 @@ def main():
     gc.collect()
 
     # ridge regression
-    cols_pred = ['prediction_lgbm','prediction_cb','prediction_xgb',
-                 'prediction_xgb_max',
+    cols_pred = ['prediction_seed_avg',
+                 'prediction_lgbm_last','prediction_cb_last','prediction_xgb_last',
+                 'prediction_lgbm_mean','prediction_cb_mean','prediction_xgb_mean',
+                 'prediction_lgbm_max','prediction_cb_max','prediction_xgb_max',
+                 'prediction_lgbm_min','prediction_cb_min','prediction_xgb_min',
                  ]
 
     # objective function for scipy optimize
@@ -234,8 +221,11 @@ def main():
     print('weights: {}'.format(w))
 
     # calc prediction
-    preds = [sub_lgbm, sub_cb, sub_xgb,
-             sub_xgb_max,
+    preds = [sub_seed_avg,
+             sub_lgbm_last, sub_cb_last, sub_xgb_last,
+             sub_lgbm_mean, sub_cb_mean, sub_xgb_mean,
+             sub_lgbm_max, sub_cb_max, sub_xgb_max,
+             sub_lgbm_min, sub_cb_min, sub_xgb_min,
              ]
 
     oof['prediction'] = 0.0
