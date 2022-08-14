@@ -8,46 +8,40 @@ import sys
 import warnings
 
 from glob import glob
-from sklearn.model_selection import StratifiedGroupKFold
-from sklearn.metrics import log_loss
+from sklearn.model_selection import StratifiedKFold
 from tqdm import tqdm
 
-from utils import save_imp, line_notify
-from utils import NUM_FOLDS, FEATS_EXCLUDED
+from utils import save_imp, amex_metric_mod, lgb_amex_metric, line_notify
+from utils import NUM_FOLDS, FEATS_EXCLUDED, CAT_COLS
 
 #==============================================================================
-# Train LightGBM
+# Train LightGBM min only
 #==============================================================================
 
 warnings.filterwarnings('ignore')
 
-configs = json.load(open('../configs/101_lgbm_no_agg.json'))
+configs = json.load(open('../configs/106_lgbm_agg_min.json'))
 
-feats_path = '../feats/f001_*.feather'
+feats_path = '../feats/f006_*.feather'
 
-sub_path = '../output/submission_lgbm_no_agg.csv'
-oof_path = '../output/oof_lgbm_no_agg.csv'
+sub_path = '../output/submission_lgbm_agg_min.csv'
+oof_path = '../output/oof_lgbm_agg_min.csv'
 
-model_path = '../models/lgbm_no_agg_'
+model_path = '../models/lgbm_agg_min_'
 
-imp_path_png = '../imp/lgbm_importances_no_agg.png'
-imp_path_csv = '../imp/feature_importance_lgbm_no_agg.csv'
+imp_path_png = '../imp/lgbm_importances_agg_min.png'
+imp_path_csv = '../imp/feature_importance_lgbm_agg_min.csv'
 
 params = configs['params']
 
 #params['device'] = 'gpu'
 params['task'] = 'train'
-params['boosting'] = 'gbdt'
+params['boosting'] = 'dart'
 params['objective'] = 'binary'
 params['metric'] = 'binary_logloss'
-params['learning_rate'] = 0.05
-params['reg_alpha'] = 0.0
-params['min_split_gain'] = 0.0
+params['learning_rate'] = 0.01
 params['verbose'] = -1
 #params['num_threads'] = -1
-params['seed'] = 42
-params['bagging_seed'] = 42
-params['drop_seed'] = 42
 
 def main():
     # load feathers
@@ -65,7 +59,7 @@ def main():
     gc.collect()
 
     # Cross validation
-    folds = StratifiedGroupKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
+    folds = StratifiedKFold(n_splits=NUM_FOLDS,shuffle=True,random_state=42)
 
     # Create arrays and dataframes to store results
     oof_preds = np.zeros(train_df.shape[0])
@@ -77,30 +71,45 @@ def main():
     # features to use
     feats = [f for f in train_df.columns if f not in FEATS_EXCLUDED]
 
+    # categorical features
+    cat_features = [f'{cf}_last' for cf in CAT_COLS]
+
     # k-fold
-    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats],train_df['target'],groups=train_df['customer_ID'])):
+    for n_fold, (train_idx, valid_idx) in enumerate(folds.split(train_df[feats],train_df['target'])):
         train_x, train_y = train_df[feats].iloc[train_idx], train_df['target'].iloc[train_idx]
         valid_x, valid_y = train_df[feats].iloc[valid_idx], train_df['target'].iloc[valid_idx]
 
         # set data structure
         lgb_train = lgb.Dataset(train_x,
                                 label=train_y,
+#                                categorical_feature = cat_features,
                                 free_raw_data=False)
 
         lgb_test = lgb.Dataset(valid_x,
                                label=valid_y,
+#                               categorical_feature = cat_features,
                                free_raw_data=False)
+
+        # change seed by folds
+        params['seed'] = 42*(n_fold+1)
+        params['bagging_seed'] = 42*(n_fold+1)
+        params['drop_seed'] = 42*(n_fold+1)
+
 
         # train
         clf = lgb.train(
                         params,
                         lgb_train,
+                        feval = lgb_amex_metric,
                         valid_sets=[lgb_train, lgb_test],
                         valid_names=['train', 'test'],
-                        num_boost_round=10000,
+                        num_boost_round=10500,
                         early_stopping_rounds= 200,
-                        verbose_eval=100
+                        verbose_eval=100,
                         )
+
+        # save model
+        clf.save_model(f'{model_path}{n_fold}.txt')
 
         # save predictions
         oof_preds[valid_idx] = clf.predict(valid_x,num_iteration=clf.best_iteration)
@@ -113,27 +122,27 @@ def main():
         imp_df = pd.concat([imp_df, fold_importance_df], axis=0)
 
         # calc fold score
-        fold_score = log_loss(valid_y,oof_preds[valid_idx])
+        fold_score = amex_metric_mod(valid_y,oof_preds[valid_idx])
 
-        print(f'Fold {n_fold+1} logloss: {fold_score}')
+        print(f'Fold {n_fold+1} kaggle metric: {fold_score}')
 
         del clf, train_x, train_y, valid_x, valid_y
         gc.collect()
 
     # Full score and LINE Notify
-    full_score = round(log_loss(train_df['target'], oof_preds),6)
-    line_notify(f'Full logloss: {full_score}')
+    full_score = round(amex_metric_mod(train_df['target'], oof_preds),6)
+    line_notify(f'Full kaggle metric: {full_score}')
 
     # save importance
     save_imp(imp_df,imp_path_png,imp_path_csv)
 
     # save prediction
-    train_df.loc[:,'pred_no_agg'] = oof_preds
-    test_df.loc[:,'pred_no_agg'] = sub_preds
+    train_df.loc[:,'prediction'] = oof_preds
+    test_df.loc[:,'prediction'] = sub_preds
 
     # save csv
-    train_df[['customer_ID','pred_no_agg']].to_csv(oof_path, index=False)
-    test_df[['customer_ID','pred_no_agg']].to_csv(sub_path, index=False)
+    train_df[['customer_ID','target','prediction']].to_csv(oof_path, index=False)
+    test_df[['customer_ID','prediction']].to_csv(sub_path, index=False)
 
     # LINE notify
     line_notify(f'{sys.argv[0]} done.')

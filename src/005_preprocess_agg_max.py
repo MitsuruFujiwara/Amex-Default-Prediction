@@ -11,7 +11,7 @@ from utils import to_json, to_feature, line_notify
 from utils import CAT_COLS
 
 #==============================================================================
-# preprocess aggregation mean only
+# preprocess aggregation max only
 #==============================================================================
 
 # get features
@@ -23,8 +23,8 @@ def get_features(df):
 
     # aggregate
     print('aggregate...')
-    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['mean'])
-    df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['mean'])
+    df_num_agg = df.groupby("customer_ID")[NUM_COLS].agg(['max'])
+    df_cat_agg = df.groupby("customer_ID")[CAT_COLS].agg(['max'])
 
     # change column names
     df_num_agg.columns = ['_'.join(x) for x in df_num_agg.columns]
@@ -98,7 +98,7 @@ def main():
 
     print('add diff features...')
     sub_df['pred_no_agg_diff'] = sub_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
-    sub_df = sub_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean'])
+    sub_df = sub_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['max'])
 
     # change column names
     sub_df.columns = ['_'.join(x) for x in sub_df.columns]
@@ -114,7 +114,7 @@ def main():
     print('add diff features...')
     oof_df['pred_no_agg_diff'] = oof_df[['customer_ID','pred_no_agg']].groupby('customer_ID').diff(1)['pred_no_agg']
 
-    oof_df = oof_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['mean'])
+    oof_df = oof_df.groupby("customer_ID")[['pred_no_agg','pred_no_agg_diff']].agg(['max'])
 
     # change column names
     oof_df.columns = ['_'.join(x) for x in oof_df.columns]
@@ -131,11 +131,11 @@ def main():
     gc.collect()
 
     # save as feather
-    to_feature(df, '../feats/f004')
+    to_feature(df, '../feats/f005')
 
     # save feature name list
     features_json = {'features':df.columns.tolist()}
-    to_json(features_json,'../configs/004_all_features_agg_mean.json')
+    to_json(features_json,'../configs/005_all_features_agg_max.json')
 
     # LINE notify
     line_notify('{} done.'.format(sys.argv[0]))
