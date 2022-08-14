@@ -168,7 +168,7 @@ def main():
 
     # get weights
     bestSC = np.min(lls)
-    w = wghts[np.argmin(lls)]
+    w = wghts[np.argmin(lls)] # [0.62779581 0.00637736 0.36582683]
     print('\n Ensemble Score: {best_score:.7f}'.format(best_score=bestSC))
     print('weights: {}'.format(w))
 
@@ -181,6 +181,7 @@ def main():
         oof['prediction'] += w[i]*oof[c]
 
     # save csv
+    oof[['customer_ID','target','prediction']].to_csv(oof_path, index=False)
     sub[['customer_ID','prediction']].to_csv(sub_path, index=False)
 
     # Full score and LINE Notify
