@@ -9,3 +9,6 @@ kaggle datasets download -d raddar/amex-data-integer-dtypes-parquet-format
 
 unzip '*.zip'
 rm *.zip
+
+kaggle kernels output hikarutabata/exponential-ensemble -p ../output
+mv ../output/submission.csv ../output/submission_hikarutabata.csv
