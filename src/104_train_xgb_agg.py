@@ -33,7 +33,7 @@ params = {
           'gamma': 1.5,
           'min_child_weight': 8,
           'lambda':70,
-          'eval_metric':'logloss',
+#          'eval_metric':'amex',
           'objective':'binary:logistic',
         }
 
