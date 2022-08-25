@@ -21,3 +21,12 @@ This repository is my solution for kaggle [American Express - Default Prediction
 - Seed averaging with seed 42, 52, 62.
 - Weighted average LightGBM, CatBoost, XGBoost (weights are determined by maxmizing cv score).
 - Blending [best public score notebook](https://www.kaggle.com/code/hikarutabata/exponential-ensemble) with weights 0.6, 0.4.
+
+### Final Submission
+I choose one with best public score and one with best cv score for final submission.
+The result is as below.
+
+||cv|public|private|
+|:---:|:---:|:---:|:---:|
+|cv best|0.798074|0.79828|0.80602|
+|public best|???|0.80040|0.80761|
