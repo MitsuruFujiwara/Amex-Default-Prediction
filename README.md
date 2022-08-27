@@ -2,8 +2,8 @@
 This repository is my solution for kaggle [American Express - Default Prediction](https://www.kaggle.com/competitions/amex-default-prediction).
 
 ### Result
-- 90th place on public LB (score: 0.80040). 
-- 134th place on private LB (score: 0.80761).
+- 85th place on public LB (score: 0.80040). 
+- 125th place on private LB (score: 0.80761).
 
 ### Data
 - Use [clean data](https://www.kaggle.com/datasets/raddar/amex-data-integer-dtypes-parquet-format) by raddar.
